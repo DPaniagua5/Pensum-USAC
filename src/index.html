@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pensum Interactivo - Sistemas USAC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --won: #16a34a;
+            --won-bg: #f0fdf4;
+            --won-border: #86efac;
+            --planned: #2563eb;
+            --planned-bg: #eff6ff;
+            --planned-border: #93c5fd;
+            --locked: #94a3b8;
+            --locked-bg: #f8fafc;
+            --available: #f59e0b;
+            --available-bg: #fffbeb;
+            --available-border: #fcd34d;
+        }
+        * { font-family: 'IBM Plex Sans', sans-serif; }
+        code, .mono { font-family: 'IBM Plex Mono', monospace; }
+
+        .course-card { transition: all 0.15s ease; cursor: default; }
+        .locked { opacity: 0.38; filter: grayscale(0.8); }
+        .prerequisite-highlight { outline: 2px solid #ef4444 !important; transform: scale(1.03); z-index: 10; }
+        .semester-col { min-width: 195px; }
+
+        /* Tabs */
+        .tab-btn { transition: all 0.15s; }
+        .tab-btn.active { background: #1e293b; color: #fff; }
+        .tab-btn:not(.active):hover { background: #e2e8f0; }
+
+        /* Plan cards */
+        .plan-period {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .plan-period-header {
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .plan-course-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+        }
+        .plan-course-item:hover { background: #f8fafc; }
+        .credit-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+        .credit-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Drag & drop */
+        .drop-zone { transition: all 0.15s; }
+        .drop-zone.drag-over { background: #eff6ff !important; border-color: #3b82f6 !important; }
+
+        /* Modal */
+        #addCourseModal { transition: opacity 0.2s; }
+
+        .badge-won { background: var(--won-bg); color: var(--won); border: 1px solid var(--won-border); }
+        .badge-planned { background: var(--planned-bg); color: var(--planned); border: 1px solid var(--planned-border); }
+        .badge-available { background: var(--available-bg); color: var(--available); border: 1px solid var(--available-border); }
+        
+        .animate-fade-in { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-[1700px] mx-auto px-6 py-3 flex flex-wrap items-center gap-4">
+            <div>
+                <h1 class="text-base font-bold text-slate-900 leading-tight">Ingeniería en Ciencias y Sistemas <span class="text-blue-600">USAC</span></h1>
+            </div>
+
+            <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg text-sm font-semibold mono">
+                <span class="text-slate-400 text-xs font-normal">CR ganados</span>
+                <span id="totalCredits" class="text-blue-700">0</span>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-500">250</span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-1 bg-slate-100 p-1 rounded-lg ml-2">
+                <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">📋 Pensum</button>
+                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">📅 Planificador</button>
+                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">🤖 Escanear Notas</button>
+            </div>
+
+            <div class="flex items-center gap-4 ml-auto">
+                <label class="flex items-center cursor-pointer gap-2">
+                    <div class="relative">
+                        <input type="checkbox" id="filterObligatory" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600">Solo Obligatorios</span>
+                </label>
+                <div class="flex gap-2">
+                    <button onclick="exportJSON()" class="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">⬇ Exportar</button>
+                    <label class="text-xs px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors cursor-pointer">
+                        ⬆ Importar<input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
+                    </label>
+                    <button onclick="resetPensum()" class="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors">Resetear</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PENSUM TAB -->
+    <div id="tab-pensum" class="tab-content max-w-[1700px] mx-auto p-4">
+        <main id="pensumContainer" class="flex overflow-x-auto gap-5 pb-8 px-1"></main>
+    </div>
+
+    <!-- PLANNER TAB -->
+    <div id="tab-planner" class="tab-content hidden max-w-[1700px] mx-auto p-6">
+        <!-- Promedio config -->
+        <div class="flex flex-wrap gap-4 mb-6 items-start">
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex-shrink-0">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Promedio de zona</label>
+                <div class="flex items-center gap-3">
+                    <input type="number" id="promedio" min="0" max="100" step="0.1" value="75"
+                        class="w-20 border border-slate-200 rounded-lg px-3 py-2 text-lg font-bold mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        oninput="updatePromedioDisplay()">
+                    <div>
+                        <div class="text-xs text-slate-500">Créditos máx. / semestre</div>
+                        <div id="maxCredDisplay" class="text-2xl font-bold text-blue-700 mono">44</div>
+                    </div>
+                </div>
+                <div class="mt-2 text-[10px] text-slate-400 space-y-0.5">
+                    <div>&lt;70 → 36 cr &nbsp;|&nbsp; 70–74 → 40 cr</div>
+                    <div>75–84 → 44 cr &nbsp;|&nbsp; 85+ → 48 cr</div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex-shrink-0">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Leyenda</div>
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-green-500 inline-block flex-shrink-0"></span> Curso ganado</div>
+                    <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block flex-shrink-0"></span> Planeado</div>
+                    <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block flex-shrink-0"></span> Disponible</div>
+                    <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-slate-300 inline-block flex-shrink-0"></span> Bloqueado</div>
+                </div>
+            </div>
+
+            <div class="ml-auto flex gap-2 items-start pt-1">
+                <button onclick="addPeriod('semester')"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
+                    + Semestre
+                </button>
+                <button onclick="addPeriod('vacation')"
+                    class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-bold hover:bg-violet-700 transition-colors shadow-sm">
+                    + Vacaciones
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary strip -->
+        <div id="plannerSummary" class="mb-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumen del plan</div>
+            <div class="flex flex-wrap gap-6 text-sm" id="summaryContent"></div>
+        </div>
+
+        <!-- Periods -->
+        <div id="plannerPeriods" class="space-y-4"></div>
+    </div>
+
+    <!-- SCANNER TAB -->
+    <div id="tab-scanner" class="tab-content hidden max-w-3xl mx-auto p-6">
+        <div class="mb-5">
+            <h2 class="text-xl font-bold text-slate-900 mb-1">Escanear Notas</h2>
+            <p class="text-sm text-slate-500">Sube tu hoja de notas en PDF con texto seleccionable. Se extrae el texto en el navegador y se compara contra los nombres del pensum — sin IA, sin internet.</p>
+        </div>
+
+        <!-- Info banner -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 flex gap-3 items-start">
+            <span class="text-lg flex-shrink-0">ℹ️</span>
+            <div class="text-xs text-blue-800 space-y-1">
+                <div><b>Funciona con:</b> PDFs de CIG/SIA con texto seleccionable (la mayoría de reportes oficiales de USAC).</div>
+                <div><b>No funciona con:</b> PDFs escaneados como imagen o fotos de pantalla.</div>
+                <div><b>Privacidad:</b> el archivo nunca sale de tu navegador.</div>
+            </div>
+        </div>
+
+        <!-- Upload zone -->
+        <div id="dropZoneScanner"
+            class="drop-zone border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center mb-5 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+            onclick="document.getElementById('pdfInput').click()"
+            ondragover="event.preventDefault(); this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleDrop(event)">
+            <div class="text-5xl mb-3">📄</div>
+            <div class="font-semibold text-slate-700 mb-1">Arrastra tu PDF aquí</div>
+            <div class="text-xs text-slate-400">o haz clic para seleccionar · Solo PDF</div>
+            <input type="file" id="pdfInput" accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+        </div>
+
+        <!-- File preview -->
+        <div id="filePreview" class="hidden mb-4 bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3">
+            <span class="text-2xl">📄</span>
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-800 text-sm truncate" id="fileName"></div>
+                <div class="text-xs text-slate-400" id="fileSize"></div>
+            </div>
+            <button onclick="clearFile()" class="text-slate-400 hover:text-red-500 transition-colors text-xl leading-none">×</button>
+        </div>
+
+        <!-- Threshold control -->
+        <div id="thresholdControl" class="hidden mb-4 bg-white border border-slate-200 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Sensibilidad de coincidencia</label>
+                <span id="thresholdVal" class="text-xs font-bold text-blue-700 mono">60%</span>
+            </div>
+            <input type="range" id="threshold" min="30" max="90" value="60" step="5"
+                class="w-full accent-blue-600" oninput="document.getElementById('thresholdVal').innerText = this.value + '%'">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                <span>Más flexible (más falsos positivos)</span>
+                <span>Más estricto (puede perder cursos)</span>
+            </div>
+        </div>
+
+        <!-- Scan button -->
+        <button id="scanBtn" onclick="scanDocument()" disabled
+            class="w-full py-3 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed mb-5">
+            🔍 Analizar PDF
+        </button>
+
+        <!-- Extracted text (collapsible) -->
+        <div id="extractedTextBox" class="hidden mb-4">
+            <button onclick="toggleExtracted()" class="text-xs text-slate-500 hover:text-slate-700 font-semibold mb-2 flex items-center gap-1">
+                <span id="extractedToggleIcon">▶</span> Ver texto extraído del PDF
+            </button>
+            <pre id="extractedText" class="hidden text-[10px] bg-slate-900 text-green-400 p-4 rounded-xl overflow-auto max-h-48 whitespace-pre-wrap font-mono leading-relaxed"></pre>
+        </div>
+
+        <!-- Progress / result -->
+        <div id="scanStatus" class="hidden"></div>
+        <div id="scanResult" class="hidden"></div>
+    </div>
+
+    <!-- ADD COURSE MODAL -->
+    <div id="addCourseModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg m-4 animate-fade-in" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                    <h3 class="font-bold text-slate-900" id="modalTitle">Agregar curso</h3>
+                    <p class="text-xs text-slate-400 mt-0.5" id="modalSubtitle"></p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-xl font-bold">×</button>
+            </div>
+            <div class="p-4">
+                <input type="text" id="courseSearch" placeholder="Buscar curso..." oninput="filterModalCourses()"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+                <div id="modalCourseList" class="space-y-1.5 max-h-72 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ─────────────────────────────────────────────
+    //  DATA
+    // ─────────────────────────────────────────────
+    const courses = [
+        { id: "0017", name: "Social Humanística 1", credits: 4, semester: 1, prereq: [], obligatory: true },
+        { id: "0069", name: "Técnica Complementaria", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0101", name: "Matemática Básica 1", credits: 7, semester: 1, prereq: [], obligatory: true },
+        { id: "0348", name: "Química General", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0006", name: "Idioma Técnico 1", credits: 2, semester: 1, prereq: [], obligatory: false },
+        { id: "0039", name: "Deportes 1", credits: 1, semester: 1, prereq: [], obligatory: false },
+        { id: "0005", name: "Técnicas de Estudio e Investigación", credits: 3, semester: 2, prereq: [], obligatory: true },
+        { id: "0019", name: "Social Humanística 2", credits: 4, semester: 2, prereq: ["0017"], obligatory: true },
+        { id: "0103", name: "Matemática Básica 2", credits: 7, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0147", name: "Física Básica", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0008", name: "Idioma Técnico 2", credits: 2, semester: 2, prereq: ["0006"], obligatory: false },
+        { id: "0040", name: "Deportes 2", credits: 1, semester: 2, prereq: ["0039"], obligatory: false },
+        { id: "0107", name: "Matemática Intermedia 1", credits: 10, semester: 3, prereq: ["0103"], obligatory: true },
+        { id: "0150", name: "Física 1", credits: 6, semester: 3, prereq: ["0103", "0147"], obligatory: true },
+        { id: "0770", name: "Intro a la Programación 1", credits: 4, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
+        { id: "0795", name: "Lógica de Sistemas", credits: 2, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
+        { id: "0960", name: "Matemática para Computación 1", credits: 5, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
+        { id: "0018", name: "Filosofía de la Ciencia", credits: 3, semester: 3, prereq: ["0019"], obligatory: false },
+        { id: "0009", name: "Idioma Técnico 3", credits: 2, semester: 3, prereq: ["0008"], obligatory: false },
+        { id: "0112", name: "Matemática Intermedia 2", credits: 5, semester: 4, prereq: ["0107"], obligatory: true },
+        { id: "0114", name: "Matemática Intermedia 3", credits: 5, semester: 4, prereq: ["0107"], obligatory: true },
+        { id: "0152", name: "Física 2", credits: 6, semester: 4, prereq: ["0107", "0150"], obligatory: true },
+        { id: "0732", name: "Estadística 1", credits: 5, semester: 4, prereq: ["0107", "0005"], obligatory: true },
+        { id: "0771", name: "Intro a la Programación 2", credits: 5, semester: 4, prereq: ["0770", "0107", "0960", "0795"], obligatory: true },
+        { id: "0796", name: "Lenguajes Formales y de Programación", credits: 3, semester: 4, prereq: ["0770", "0960", "0795"], obligatory: true },
+        { id: "0962", name: "Matemática para Computación 2", credits: 5, semester: 4, prereq: ["0770", "0960", "0795"], obligatory: true },
+        { id: "2025", name: "Prácticas Iniciales", credits: 0, semester: 4, prereq: ["0770"], obligatory: true },
+        { id: "0010", name: "Lógica", credits: 2, semester: 4, prereq: ["0019"], obligatory: false },
+        { id: "0011", name: "Idioma Técnico 4", credits: 2, semester: 4, prereq: ["0009"], obligatory: false },
+        { id: "0061", name: "Congresos", credits: 2, semester: 4, prereq: [], obligatory: false },
+        { id: "0116", name: "Matemática Aplicada 3", credits: 5, semester: 5, prereq: ["0112", "0114"], obligatory: true },
+        { id: "0118", name: "Matemática Aplicada 1", credits: 6, semester: 5, prereq: ["0112", "0114"], obligatory: true },
+        { id: "0736", name: "Análisis Probabilístico", credits: 4, semester: 5, prereq: ["0732"], obligatory: true },
+        { id: "0772", name: "Estructura de Datos", credits: 5, semester: 5, prereq: ["0771", "0796", "0962"], obligatory: true },
+        { id: "0777", name: "Org. de Lenguajes y Compiladores 1", credits: 4, semester: 5, prereq: ["0771", "0796", "0962"], obligatory: true },
+        { id: "0964", name: "Organización Computacional", credits: 3, semester: 5, prereq: ["0152", "0771", "0962"], obligatory: true },
+        { id: "0028", name: "Ecología", credits: 3, semester: 5, prereq: [], minCredits: 90, obligatory: false },
+        { id: "0368", name: "Principios de Metrología", credits: 3, semester: 5, prereq: ["0732", "0152", "0348"], obligatory: false },
+        { id: "0650", name: "Contabilidad 1", credits: 3, semester: 5, prereq: [], minCredits: 90, obligatory: false },
+        { id: "3022", name: "Psicología industrial (Diplomado)", credits: 0, semester: 5, prereq: [], minCredits: 90, obligatory: false },
+        { id: "3123", name: "Matemática Aplicada 5 (Diplomado)", credits: 0, semester: 5, prereq: ["0112", "0114"], obligatory: false },
+        { id: "0014", name: "Economía", credits: 4, semester: 6, prereq: ["0732"], obligatory: true },
+        { id: "0601", name: "Investigación de Operaciones 1", credits: 5, semester: 6, prereq: ["0732", "0771"], obligatory: true },
+        { id: "0722", name: "Teoría de Sistemas 1", credits: 5, semester: 6, prereq: ["0116", "0118", "0732", "0772"], obligatory: true },
+        { id: "0773", name: "Manejo e Imp. de Archivos", credits: 4, semester: 6, prereq: ["0772", "0796"], obligatory: true },
+        { id: "0778", name: "Arquitectura de Computadores y Ensambladores 1", credits: 5, semester: 6, prereq: ["0964", "0796"], obligatory: true },
+        { id: "0781", name: "Organización de Lenguajes y Compiladores 2", credits: 5, semester: 6, prereq: ["0777", "0772"], obligatory: true },
+        { id: "0120", name: "Matemática Aplicada 2", credits: 6, semester: 6, prereq: ["0118"], obligatory: false },
+        { id: "0122", name: "Matemática Aplicada 4", credits: 4, semester: 6, prereq: ["0118"], obligatory: false },
+        { id: "0200", name: "Ingeniería Eléctrica 1", credits: 5, semester: 6, prereq: ["0114", "0152"], obligatory: false },
+        { id: "0335", name: "Gestión de Desastres", credits: 3, semester: 6, prereq: ["0028"], obligatory: false },
+        { id: "0652", name: "Contabilidad 2", credits: 3, semester: 6, prereq: ["0650"], obligatory: false },
+        { id: "0739", name: "Didáctica de la Matemática", credits: 2, semester: 6, prereq: [], obligatory: false },
+        { id: "3658", name: "Administración de Personal (Diplomado)", credits: 0, semester: 6, prereq: ["3022"], obligatory: false },
+        { id: "0281", name: "Sistemas Operativos 1", credits: 5, semester: 7, prereq: ["0778", "0781"], obligatory: true },
+        { id: "0603", name: "Investigación de Operaciones 2", credits: 5, semester: 7, prereq: ["0601"], obligatory: true },
+        { id: "0724", name: "Teoría de Sistemas 2", credits: 5, semester: 7, prereq: ["0722", "0601", "0736"], obligatory: true },
+        { id: "0774", name: "Sistemas de Bases de Datos 1", credits: 5, semester: 7, prereq: ["0773"], obligatory: true },
+        { id: "0779", name: "Arquitectura de Computadores y Ensambladores 2", credits: 4, semester: 7, prereq: ["0778"], obligatory: true },
+        { id: "0970", name: "Redes de Computadoras 1", credits: 4, semester: 7, prereq: ["0773", "0778"], obligatory: true },
+        { id: "2036", name: "Prácticas Intermedias", credits: 0, semester: 7, prereq: ["2025", "0778", "0777", "0773"], obligatory: true },
+        { id: "0654", name: "Contabilidad 3", credits: 3, semester: 7, prereq: ["0652"], obligatory: false },
+        { id: "0734", name: "Estadística 2", credits: 5, semester: 7, prereq: ["0732"], obligatory: false },
+        { id: "3662", name: "Legislación 1 (Diplomado)", credits: 0, semester: 7, prereq: [], minCredits: 90, obligatory: false },
+        { id: "0283", name: "Análisis y Diseño de Sistemas 1", credits: 5, semester: 8, prereq: ["0774"], obligatory: true },
+        { id: "0285", name: "Sistemas Operativos 2", credits: 4, semester: 8, prereq: ["0281"], obligatory: true },
+        { id: "0775", name: "Sistemas de Bases de Datos 2", credits: 4, semester: 8, prereq: ["0281", "0774"], obligatory: true },
+        { id: "0797", name: "Seminario de Sistemas 1", credits: 3, semester: 8, prereq: ["0724"], minCredits: 170, obligatory: true },
+        { id: "0799", name: "Seminario de Investigación", credits: 4, semester: 8, prereq: [], minCredits: 200, obligatory: true },
+        { id: "0975", name: "Redes de Computadoras 2", credits: 4, semester: 8, prereq: ["0970"],  obligatory: true },
+        { id: "0288", name: "Intro al Estudio de Impacto Ambiental", credits: 4, semester: 8, prereq: [], minCredits: 190, obligatory: false },
+        { id: "0700", name: "Ingeniería Económica 1", credits: 5, semester: 8, prereq: ["0732"], obligatory: false },
+        { id: "3664", name: "Legislación 2 (Diplomado)", credits: 0, semester: 8, prereq: ["3662"], obligatory: false },
+        { id: "0729", name: "Modelación y Simulación 1", credits: 5, semester: 9, prereq: ["0603", "0774"], obligatory: true },
+        { id: "0785", name: "Análisis y Diseño de Sistemas 2", credits: 5, semester: 9, prereq: ["0283"], obligatory: true },
+        { id: "0786", name: "Sistemas Organizacionales y Gerenciales 1", credits: 4, semester: 9, prereq: ["0283", "0722"], obligatory: true },
+        { id: "0798", name: "Seminario de Sistemas 2", credits: 3, semester: 9, prereq: ["0797"], minCredits: 190, obligatory: true },
+        { id: "0972", name: "Inteligencia Artificial 1", credits: 4, semester: 9, prereq: ["0781", "0775", "0724"], obligatory: true },
+        { id: "7999", name: "Seminario de Investigación EPS Sistemas", credits: 4, semester: 9, prereq: [], minCredits: 225, obligatory: true },
+        { id: "0001", name: "Ética Profesional", credits: 4, semester: 9, prereq: [], minCredits: 200, obligatory: false },
+        { id: "0702", name: "Ingeniería Económica 2", credits: 4, semester: 9, prereq: ["0700"], obligatory: false },
+        { id: "0738", name: "Teoría Probabilística de Decisiones", credits: 5, semester: 9, prereq: ["0736"], obligatory: false },
+        { id: "0776", name: "Bases de Datos Avanzados", credits: 5, semester: 9, prereq: ["0775"], obligatory: false },
+        { id: "0788", name: "Sistemas Aplicados 1", credits: 5, semester: 9, prereq: ["0283"], obligatory: false },
+        { id: "0790", name: "Emprendedores de Negocios Informáticos", credits: 4, semester: 9, prereq: ["0786"], obligatory: false },
+        { id: "0966", name: "Seguridad y Auditoría de Redes", credits: 4, semester: 9, prereq: ["0975"], obligatory: false },
+        { id: "0720", name: "Modelación y Simulación 2", credits: 5, semester: 10, prereq: ["0729"], obligatory: true },
+        { id: "0780", name: "Software Avanzado", credits: 6, semester: 10, prereq: ["0785"], obligatory: true },
+        { id: "0787", name: "Sistemas Organizacionales y Gerenciales 2", credits: 4, semester: 10, prereq: ["0786"], obligatory: true },
+        { id: "2009", name: "Prácticas Finales", credits: 0, semester: 10, prereq: ["2036"], minCredits: 200, obligatory: true },
+        { id: "0656", name: "Administración de Empresas 1", credits: 5, semester: 10, prereq: [], minCredits: 150, obligatory: false },
+        { id: "0706", name: "Preparación y Evaluación de Proyectos 1", credits: 4, semester: 10, prereq: ["0700"], minCredits: 190, obligatory: false },
+        { id: "0710", name: "Planeamiento", credits: 6, semester: 10, prereq: [], minCredits: 190, obligatory: false },
+        { id: "0735", name: "Auditoría de Proyectos de Software", credits: 5, semester: 10, prereq: ["0785"], obligatory: false },
+        { id: "0789", name: "Sistemas Aplicados 2", credits: 5, semester: 10, prereq: ["0785", "0788"], obligatory: false },
+        { id: "0968", name: "Inteligencia Artificial 2", credits: 4, semester: 10, prereq: ["0972"], obligatory: false },
+        { id: "0974", name: "Redes de Nueva Generación", credits: 4, semester: 10, prereq: ["0975"], obligatory: false },
+    ];
+
+    // ─────────────────────────────────────────────
+    //  STATE
+    // ─────────────────────────────────────────────
+    let state = {};    // { courseId: true } — ganados
+    let plan = [];     // [{ id, type, label, courses: [courseId, ...] }]
+    let currentTab = 'pensum';
+    let modalPeriodId = null;
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem('usac_pensum_v2');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                state = parsed.state || {};
+                plan = parsed.plan || [];
+            }
+        } catch(e) { state = {}; plan = []; }
+    }
+
+    function saveState() {
+        localStorage.setItem('usac_pensum_v2', JSON.stringify({ state, plan }));
+    }
+
+    function getMaxCredits() {
+        const p = parseFloat(document.getElementById('promedio').value) || 0;
+        if (p < 70) return 36;
+        if (p < 75) return 40;
+        if (p < 85) return 44;
+        return 48;
+    }
+
+    // All course IDs that are "planned" (in any period)
+    function getPlannedIds() {
+        return new Set(plan.flatMap(p => p.courses));
+    }
+
+    // Credits of won courses at a point (cumulative through plan up to periodIdx)
+    function getWonCredits() {
+        return courses.reduce((acc, c) => state[c.id] ? acc + c.credits : acc, 0);
+    }
+
+    function getCumulativePlannedCredits(upToPeriodIdx) {
+        // won + planned up to (not including) upToPeriodIdx
+        let total = getWonCredits();
+        for (let i = 0; i < upToPeriodIdx && i < plan.length; i++) {
+            plan[i].courses.forEach(cId => {
+                if (!state[cId]) {
+                    const c = courses.find(x => x.id === cId);
+                    if (c) total += c.credits;
+                }
+            });
+        }
+        return total;
+    }
+
+    function isCourseAvailable(courseId, simulatedWon) {
+        // simulatedWon is a Set of course IDs considered "done"
+        const c = courses.find(x => x.id === courseId);
+        if (!c) return false;
+        const wonCredits = [...simulatedWon].reduce((acc, id) => {
+            const cc = courses.find(x => x.id === id);
+            return acc + (cc ? cc.credits : 0);
+        }, 0);
+        const hasPrereqs = c.prereq.every(p => simulatedWon.has(p));
+        const hasMinCr = c.minCredits ? wonCredits >= c.minCredits : true;
+        return hasPrereqs && hasMinCr;
+    }
+
+    // ─────────────────────────────────────────────
+    //  TABS
+    // ─────────────────────────────────────────────
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (event && event.target) event.target.classList.add('active');
+        if (tab === 'planner') renderPlanner();
+        if (tab === 'scanner') updateScanBtn();
+    }
+
+    // ─────────────────────────────────────────────
+    //  PENSUM RENDER
+    // ─────────────────────────────────────────────
+    function renderPensum() {
+        const container = document.getElementById('pensumContainer');
+        container.innerHTML = '';
+        const onlyObligatory = document.getElementById('filterObligatory').checked;
+        const plannedIds = getPlannedIds();
+
+        const currentCredits = courses.reduce((acc, c) => state[c.id] ? acc + c.credits : acc, 0);
+
+        for (let sem = 1; sem <= 10; sem++) {
+            const column = document.createElement('div');
+            column.className = 'semester-col flex-shrink-0';
+            column.innerHTML = `<h3 class="font-bold text-slate-400 text-[10px] uppercase mb-3 tracking-widest pl-1">Semestre ${sem}</h3>`;
+
+            const semesterCourses = courses.filter(c => c.semester === sem);
+            semesterCourses.forEach(course => {
+                if (onlyObligatory && !course.obligatory) return;
+                const isWon = !!state[course.id];
+                const isPlanned = plannedIds.has(course.id) && !isWon;
+                const hasCourses = course.prereq.every(pId => state[pId]);
+                const hasMinCredits = course.minCredits ? currentCredits >= course.minCredits : true;
+                const isLocked = !(hasCourses && hasMinCredits);
+
+                const card = document.createElement('div');
+                let borderClass, bgClass;
+                if (isWon) { borderClass = 'border-green-400'; bgClass = 'bg-green-50'; }
+                else if (isPlanned) { borderClass = 'border-blue-400'; bgClass = 'bg-blue-50'; }
+                else if (isLocked) { borderClass = 'border-slate-200'; bgClass = 'bg-slate-50'; }
+                else { borderClass = 'border-amber-300'; bgClass = 'bg-amber-50'; }
+
+                card.className = `course-card relative p-3 mb-2 rounded-lg border shadow-sm 
+                    ${bgClass} ${borderClass}
+                    ${isLocked && !isWon ? 'locked' : 'hover:shadow-md'}`;
+                card.dataset.id = course.id;
+
+                const statusDot = isWon
+                    ? `<span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>`
+                    : isPlanned
+                    ? `<span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>`
+                    : isLocked ? `<span class="w-2 h-2 rounded-full bg-slate-300 inline-block"></span>`
+                    : `<span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[9px] font-bold text-slate-400 mono">#${course.id}</span>
+                        <div class="flex items-center gap-1">
+                            ${statusDot}
+                            ${course.obligatory ? `<svg class="w-2.5 h-2.5 fill-blue-500" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>` : ''}
+                        </div>
+                    </div>
+                    <h4 class="text-[11px] font-semibold text-slate-800 leading-tight mb-2 min-h-[28px]">${course.name}</h4>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 bg-white/70 px-1.5 py-0.5 rounded mono">${course.credits} CR</span>
+                        <input type="checkbox" ${isWon ? 'checked' : ''} 
+                            onchange="toggleCourse('${course.id}')" 
+                            class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer">
+                    </div>
+                `;
+                card.onmouseover = () => highlightChain(course.prereq);
+                card.onmouseout = () => clearHighlights();
+                column.appendChild(card);
+            });
+            container.appendChild(column);
+        }
+        updateUI();
+    }
+
+    function toggleCourse(id) {
+        const isWon = !state[id];
+        if (isWon) {
+            const markAsWon = (courseId) => {
+                const course = courses.find(c => c.id === courseId);
+                if (!course) return;
+                state[courseId] = true;
+                if (course.prereq && course.prereq.length > 0) course.prereq.forEach(pId => markAsWon(pId));
+            };
+            markAsWon(id);
+        } else {
+            state[id] = false;
+        }
+        saveState();
+        renderPensum();
+        if (currentTab === 'planner') renderPlanner();
+    }
+
+    function highlightChain(prereqs) {
+        prereqs.forEach(pId => {
+            const el = document.querySelector(`[data-id="${pId}"]`);
+            if (el) el.classList.add('prerequisite-highlight');
+        });
+    }
+    function clearHighlights() {
+        document.querySelectorAll('.course-card').forEach(el => el.classList.remove('prerequisite-highlight'));
+    }
+    function updateUI() {
+        const total = courses.reduce((acc, c) => state[c.id] ? acc + c.credits : acc, 0);
+        document.getElementById('totalCredits').innerText = total;
+    }
+    function resetPensum() {
+        if (confirm('¿Seguro que quieres borrar TODO el progreso y el plan?')) {
+            state = {}; plan = [];
+            saveState();
+            renderPensum();
+            if (currentTab === 'planner') renderPlanner();
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  EXPORT / IMPORT
+    // ─────────────────────────────────────────────
+    function exportJSON() {
+        const data = {
+            exportDate: new Date().toISOString(),
+            version: 2,
+            state,
+            plan,
+            promedio: parseFloat(document.getElementById('promedio').value) || 0
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pensum_usac_progreso.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.state) state = data.state;
+                if (data.plan) plan = data.plan;
+                if (data.promedio) document.getElementById('promedio').value = data.promedio;
+                saveState();
+                renderPensum();
+                updatePromedioDisplay();
+                if (currentTab === 'planner') renderPlanner();
+                alert('✅ Progreso importado correctamente');
+            } catch(err) {
+                alert('❌ Archivo JSON inválido');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    // ─────────────────────────────────────────────
+    //  PLANNER
+    // ─────────────────────────────────────────────
+    function updatePromedioDisplay() {
+        document.getElementById('maxCredDisplay').innerText = getMaxCredits();
+        if (currentTab === 'planner') renderPlanner();
+    }
+
+    function addPeriod(type) {
+        const semCount = plan.filter(p => p.type === 'semester').length + 1;
+        const vacCount = plan.filter(p => p.type === 'vacation').length + 1;
+        const label = type === 'semester' ? `Semestre ${semCount}` : `Vacaciones ${vacCount}`;
+        plan.push({ id: Date.now(), type, label, courses: [] });
+        saveState();
+        renderPlanner();
+    }
+
+    function removePeriod(id) {
+        plan = plan.filter(p => p.id !== id);
+        saveState();
+        renderPlanner();
+    }
+
+    function removeCourseFromPeriod(periodId, courseId) {
+        const period = plan.find(p => p.id === periodId);
+        if (period) {
+            period.courses = period.courses.filter(c => c !== courseId);
+            saveState();
+            renderPlanner();
+        }
+    }
+
+    function renderPlanner() {
+        const container = document.getElementById('plannerPeriods');
+        container.innerHTML = '';
+
+        // Build "simulated won" state: won + courses from prev periods
+        // for each period we compute what courses are available
+        let simulatedWon = new Set(Object.keys(state).filter(k => state[k]));
+
+        // Summary
+        const wonCr = getWonCredits();
+        const plannedCr = plan.reduce((acc, p) => {
+            return acc + p.courses.reduce((a, cId) => {
+                if (state[cId]) return a;
+                const c = courses.find(x => x.id === cId);
+                return a + (c ? c.credits : 0);
+            }, 0);
+        }, 0);
+        const totalCourses = courses.length;
+        const wonCount = Object.keys(state).filter(k => state[k]).length;
+        const plannedCount = plan.flatMap(p => p.courses).filter(id => !state[id]).length;
+        document.getElementById('summaryContent').innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                <span><b>${wonCount}</b> cursos ganados · <b>${wonCr}</b> créditos</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                <span><b>${plannedCount}</b> cursos planeados · <b>${plannedCr}</b> créditos</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-slate-300"></span>
+                <span><b>${totalCourses - wonCount - plannedCount}</b> cursos pendientes</span>
+            </div>
+            <div class="flex items-center gap-2 ml-4 pl-4 border-l border-slate-200">
+                <span class="text-slate-500">Total acumulado planeado:</span>
+                <span class="font-bold text-slate-800">${wonCr + plannedCr} / 250 CR</span>
+            </div>
+        `;
+
+        plan.forEach((period, idx) => {
+            const isSemester = period.type === 'semester';
+            const isVacation = period.type === 'vacation';
+
+            // Credits in this period (only non-won)
+            const periodCr = period.courses.reduce((acc, cId) => {
+                if (state[cId]) return acc;
+                const c = courses.find(x => x.id === cId);
+                return acc + (c ? c.credits : 0);
+            }, 0);
+            const maxCr = isSemester ? getMaxCredits() : (isVacation ? 999 : 999);
+            const overLimit = isSemester && periodCr > maxCr;
+
+            // Header colors
+            let headerBg, headerText, iconLabel;
+            if (isSemester) {
+                headerBg = overLimit ? 'bg-red-600' : 'bg-slate-800';
+                headerText = 'text-white';
+                iconLabel = '📚';
+            } else {
+                headerBg = 'bg-violet-700';
+                headerText = 'text-white';
+                iconLabel = '☀️';
+            }
+
+            const periodEl = document.createElement('div');
+            periodEl.className = 'plan-period animate-fade-in';
+            periodEl.innerHTML = `
+                <div class="plan-period-header ${headerBg} ${headerText}">
+                    <div class="flex items-center gap-2">
+                        <span>${iconLabel}</span>
+                        <input type="text" value="${period.label}" 
+                            class="bg-transparent border-none outline-none font-bold text-xs uppercase tracking-widest placeholder-white/60 w-36"
+                            onchange="renamePeriod(${period.id}, this.value)">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        ${isSemester ? `
+                        <div class="text-xs font-normal opacity-90">
+                            <span class="${overLimit ? 'text-red-300 font-bold' : ''}">${periodCr}</span> / ${maxCr} CR
+                            ${overLimit ? '<span class="ml-1 text-red-300">⚠ Límite excedido</span>' : ''}
+                        </div>` : `
+                        <div class="text-xs font-normal opacity-90">${period.courses.filter(c => !state[c]).length} cursos · máx 2</div>`}
+                        <button onclick="openModal(${period.id})" class="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded font-semibold transition-colors">+ Agregar</button>
+                        <button onclick="removePeriod(${period.id})" class="text-xs text-white/60 hover:text-white transition-colors ml-1">✕</button>
+                    </div>
+                </div>
+                ${isSemester ? `
+                <div class="px-4 pt-2 pb-1">
+                    <div class="credit-bar">
+                        <div class="credit-bar-fill ${overLimit ? 'bg-red-500' : 'bg-blue-500'}" style="width: ${Math.min(100, (periodCr/maxCr)*100)}%"></div>
+                    </div>
+                </div>` : ''}
+                <div id="period-courses-${period.id}" class="divide-y divide-slate-50">
+                    ${period.courses.length === 0 ? `<div class="px-4 py-3 text-xs text-slate-400 italic">Sin cursos asignados aún.</div>` : ''}
+                    ${period.courses.map(cId => renderPlanCourse(cId, period.id, simulatedWon)).join('')}
+                </div>
+            `;
+            container.appendChild(periodEl);
+
+            // Advance simulatedWon for next period
+            period.courses.forEach(cId => simulatedWon.add(cId));
+        });
+
+        if (plan.length === 0) {
+            container.innerHTML = `<div class="text-center py-16 text-slate-400">
+                <div class="text-4xl mb-3">📅</div>
+                <div class="font-semibold">No hay períodos en el plan</div>
+                <div class="text-sm mt-1">Usa los botones de arriba para agregar semestres o vacaciones</div>
+            </div>`;
+        }
+    }
+
+    function renderPlanCourse(cId, periodId, simulatedWon) {
+        const c = courses.find(x => x.id === cId);
+        if (!c) return '';
+        const isWon = !!state[cId];
+        let badgeClass, statusLabel;
+        if (isWon) { badgeClass = 'badge-won'; statusLabel = '✓ Ganado'; }
+        else { badgeClass = 'badge-planned'; statusLabel = 'Planeado'; }
+
+        return `<div class="plan-course-item">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="min-w-0">
+                    <div class="font-semibold text-slate-800 truncate" style="max-width:340px">${c.name}</div>
+                    <div class="text-[10px] text-slate-400 mono mt-0.5">#${c.id} · ${c.credits} CR · Sem ${c.semester}</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${badgeClass}">${statusLabel}</span>
+                <button onclick="removeCourseFromPeriod(${periodId}, '${cId}')" class="text-slate-300 hover:text-red-400 transition-colors text-lg leading-none">×</button>
+            </div>
+        </div>`;
+    }
+
+    function renamePeriod(id, newLabel) {
+        const p = plan.find(x => x.id === id);
+        if (p) { p.label = newLabel; saveState(); }
+    }
+
+    // ─────────────────────────────────────────────
+    //  MODAL
+    // ─────────────────────────────────────────────
+    function openModal(periodId) {
+        modalPeriodId = periodId;
+        const period = plan.find(p => p.id === periodId);
+        const isVacation = period && period.type === 'vacation';
+        const modal = document.getElementById('addCourseModal');
+        document.getElementById('modalTitle').innerText = `Agregar a "${period ? period.label : ''}"`;
+        document.getElementById('modalSubtitle').innerText = isVacation
+            ? 'Vacaciones: máximo 2 cursos. Se recomienda cursos cortos (pocos créditos).'
+            : `Semestre: máx ${getMaxCredits()} créditos según tu promedio.`;
+        document.getElementById('courseSearch').value = '';
+        modal.classList.remove('hidden');
+        filterModalCourses();
+        setTimeout(() => document.getElementById('courseSearch').focus(), 50);
+    }
+
+    function closeModal() {
+        document.getElementById('addCourseModal').classList.add('hidden');
+        modalPeriodId = null;
+    }
+
+    function filterModalCourses() {
+        const q = document.getElementById('courseSearch').value.toLowerCase();
+        const period = plan.find(p => p.id === modalPeriodId);
+        if (!period) return;
+
+        const allPlanned = getPlannedIds();
+        const isVacation = period.type === 'vacation';
+        const vacCourseCount = period.courses.filter(id => !state[id]).length;
+
+        // Build simulated won up to this period
+        let simWon = new Set(Object.keys(state).filter(k => state[k]));
+        for (const p of plan) {
+            if (p.id === period.id) break;
+            p.courses.forEach(cId => simWon.add(cId));
+        }
+
+        const list = document.getElementById('modalCourseList');
+        const eligible = courses.filter(c => {
+            if (state[c.id]) return false; // already won
+            if (allPlanned.has(c.id)) return false; // already in a period
+            if (q && !c.name.toLowerCase().includes(q) && !c.id.includes(q)) return false;
+            return true;
+        });
+
+        if (eligible.length === 0) {
+            list.innerHTML = `<div class="text-center text-sm text-slate-400 py-6">No hay cursos disponibles</div>`;
+            return;
+        }
+
+        list.innerHTML = eligible.map(c => {
+            const available = isCourseAvailable(c.id, simWon);
+            const vacFull = isVacation && vacCourseCount >= 2;
+            const disabled = vacFull && !state[c.id];
+
+            return `<div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors ${disabled ? 'opacity-40' : ''}">
+                <div>
+                    <div class="text-sm font-semibold text-slate-800">${c.name}</div>
+                    <div class="text-[10px] text-slate-400 mono">#${c.id} · ${c.credits} CR · Sem ${c.semester}
+                        ${!available ? '<span class="ml-2 text-amber-500">⚠ Prerrequisitos pendientes</span>' : ''}
+                    </div>
+                </div>
+                <button onclick="${disabled ? '' : `addCourseToPeriod(${modalPeriodId}, '${c.id}')`}"
+                    class="text-xs px-2.5 py-1 rounded-lg font-semibold transition-colors flex-shrink-0 ml-3
+                    ${disabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}">
+                    ${disabled ? 'Lleno' : '+ Agregar'}
+                </button>
+            </div>`;
+        }).join('');
+    }
+
+    function addCourseToPeriod(periodId, courseId) {
+        const period = plan.find(p => p.id === periodId);
+        if (!period) return;
+        if (!period.courses.includes(courseId)) {
+            period.courses.push(courseId);
+            saveState();
+            renderPlanner();
+            filterModalCourses(); // refresh modal
+        }
+    }
+
+    // Click outside modal to close
+    document.getElementById('addCourseModal').addEventListener('click', closeModal);
+
+    // ─────────────────────────────────────────────
+    //  SCANNER (sin IA — PDF.js + fuzzy matching)
+    // ─────────────────────────────────────────────
+    let scanFile = null;
+
+    // Load PDF.js lazily
+    function loadPdfJs() {
+        return new Promise((resolve, reject) => {
+            if (window.pdfjsLib) { resolve(window.pdfjsLib); return; }
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                resolve(window.pdfjsLib);
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    function updateScanBtn() {
+        document.getElementById('scanBtn').disabled = !scanFile;
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        document.getElementById('dropZoneScanner').classList.remove('drag-over');
+        const file = event.dataTransfer.files[0];
+        if (file) setFile(file);
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) setFile(file);
+    }
+
+    function setFile(file) {
+        if (file.type !== 'application/pdf') { alert('Solo se aceptan archivos PDF'); return; }
+        if (file.size > 20 * 1024 * 1024) { alert('El archivo excede 20 MB'); return; }
+        scanFile = file;
+        document.getElementById('fileName').innerText = file.name;
+        document.getElementById('fileSize').innerText = (file.size / 1024).toFixed(1) + ' KB';
+        document.getElementById('filePreview').classList.remove('hidden');
+        document.getElementById('dropZoneScanner').classList.add('hidden');
+        document.getElementById('thresholdControl').classList.remove('hidden');
+        document.getElementById('scanStatus').classList.add('hidden');
+        document.getElementById('scanResult').classList.add('hidden');
+        document.getElementById('extractedTextBox').classList.add('hidden');
+        updateScanBtn();
+    }
+
+    function clearFile() {
+        scanFile = null;
+        document.getElementById('filePreview').classList.add('hidden');
+        document.getElementById('dropZoneScanner').classList.remove('hidden');
+        document.getElementById('thresholdControl').classList.add('hidden');
+        document.getElementById('pdfInput').value = '';
+        document.getElementById('scanStatus').classList.add('hidden');
+        document.getElementById('scanResult').classList.add('hidden');
+        document.getElementById('extractedTextBox').classList.add('hidden');
+        updateScanBtn();
+    }
+
+    function toggleExtracted() {
+        const pre = document.getElementById('extractedText');
+        const icon = document.getElementById('extractedToggleIcon');
+        const hidden = pre.classList.toggle('hidden');
+        icon.innerText = hidden ? '▶' : '▼';
+    }
+
+    async function scanDocument() {
+        if (!scanFile) return;
+        const btn = document.getElementById('scanBtn');
+        btn.disabled = true;
+        btn.innerText = '⏳ Leyendo PDF...';
+        document.getElementById('scanResult').classList.add('hidden');
+        document.getElementById('scanStatus').innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3 mb-4">
+                <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                <div class="text-sm text-blue-800 font-medium">Extrayendo texto del PDF...</div>
+            </div>`;
+        document.getElementById('scanStatus').classList.remove('hidden');
+
+        try {
+            const pdfjsLib = await loadPdfJs();
+            const arrayBuffer = await scanFile.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+            // ── Reconstruct rows using Y coordinate ──────────────
+            // Each PDF item has transform[4]=x, transform[5]=y
+            // Items on the same row share a similar Y value
+            let allItems = [];
+            for (let p = 1; p <= pdf.numPages; p++) {
+                const page = await pdf.getPage(p);
+                const content = await page.getTextContent();
+                // Normalize Y across pages by offsetting by page index * 10000
+                content.items.forEach(item => {
+                    allItems.push({
+                        x: item.transform[4],
+                        y: item.transform[5] - p * 10000, // negative so page 1 > page 2
+                        str: item.str.trim()
+                    });
+                });
+            }
+
+            // Group into rows: items within 3px Y of each other = same row
+            allItems.sort((a, b) => b.y - a.y || a.x - b.x);
+            const rows = [];
+            let currentRow = null, currentY = null;
+            for (const item of allItems) {
+                if (!item.str) continue;
+                if (currentY === null || Math.abs(item.y - currentY) > 3) {
+                    currentRow = [];
+                    rows.push(currentRow);
+                    currentY = item.y;
+                }
+                currentRow.push(item);
+            }
+
+            // Convert rows to strings for display
+            const rowStrings = rows.map(r => r.map(i => i.str).join('  '));
+            const fullText = rowStrings.join('\n');
+            document.getElementById('extractedText').innerText = fullText;
+            document.getElementById('extractedTextBox').classList.remove('hidden');
+
+            if (fullText.trim().length < 20) {
+                throw new Error('No se pudo extraer texto. El PDF puede ser una imagen escaneada.');
+            }
+
+            // ── Parse FIUSAC format ───────────────────────────────
+            // Strategy 1: Regex on full flat text — look for  CÓDIGO  ...  NOTA
+            // The FIUSAC format has tokens like: 0005  TECNICAS...  3  2020-05  70.00
+            // We scan the flat text for 4-digit codes followed eventually by a grade 61–100
+
+            const flatText = rowStrings.join(' ');
+
+            // Match pattern: 4-digit code, then anything, then date YYYY-MM, then grade or "Aprobado"
+            // Allow multi-line course names by working on flat text
+            const ENTRY_RE = /\b(\d{4})\b(.{0,120}?)\b(\d{4}-\d{2})\b\s*([\d.]+|Aprobado)/g;
+
+            const found = [];
+            const seenIds = new Set();
+            let match;
+            while ((match = ENTRY_RE.exec(flatText)) !== null) {
+                const code = match[1].padStart(4, '0');
+                const gradeRaw = match[4];
+                const grade = gradeRaw === 'Aprobado' ? null : parseFloat(gradeRaw);
+
+                // Only consider approved: grade ≥ 61 or "Aprobado"
+                if (grade !== null && grade < 61) continue;
+                if (seenIds.has(code)) continue;
+
+                // Check if this code exists in our pensum
+                const course = courses.find(c => c.id === code);
+                if (!course) continue;
+
+                seenIds.add(code);
+                found.push({
+                    id: code,
+                    name: course.name,
+                    grade: gradeRaw === 'Aprobado' ? 'Aprobado' : grade.toFixed(2),
+                    rawLine: match[0].trim()
+                });
+            }
+
+            // Strategy 2 (fallback): if Strategy 1 found nothing, just look for any 4-digit
+            // pensum code that appears in the text (less precise but catches edge cases)
+            if (found.length === 0) {
+                courses.forEach(c => {
+                    const re = new RegExp('\\b' + c.id + '\\b');
+                    if (re.test(flatText) && !seenIds.has(c.id)) {
+                        seenIds.add(c.id);
+                        found.push({ id: c.id, name: c.name, grade: null, rawLine: '', fallback: true });
+                    }
+                });
+            }
+
+            showScanResult(found);
+            document.getElementById('scanStatus').classList.add('hidden');
+
+        } catch(err) {
+            document.getElementById('scanStatus').innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-800 mb-4">
+                    <b>Error:</b> ${err.message}
+                </div>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '🔍 Analizar PDF';
+            updateScanBtn();
+        }
+    }
+
+    function showScanResult(results, fullText) {
+        window._scanFound = results;
+        const total = results.length;
+
+        let html = `<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm animate-fade-in">
+            <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                <span class="font-bold text-sm">Resultados del análisis</span>
+                <span class="text-xs text-slate-400">${total} coincidencias encontradas</span>
+            </div>`;
+
+        if (total === 0) {
+            html += `<div class="p-6 text-center text-slate-500 text-sm">
+                <div class="text-3xl mb-2">🔍</div>
+                No se encontraron coincidencias. Prueba bajando la sensibilidad o verifica que el PDF tenga texto seleccionable.
+            </div>`;
+        } else {
+            // Group by confidence
+            const high = results.filter(r => r.confidence === 'high');
+            const medium = results.filter(r => r.confidence === 'medium');
+            const low = results.filter(r => r.confidence === 'low');
+
+            const renderGroup = (items, label, colorClass, badgeClass, defaultCheck) => {
+                if (items.length === 0) return '';
+                return `<div class="px-5 py-3 border-b border-slate-100">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">${label} (${items.length})</div>
+                    <div class="space-y-1.5">
+                    ${items.map(r => {
+                        const alreadyWon = !!state[r.id];
+                        return `<div class="flex items-center gap-3 p-2.5 rounded-lg border border-slate-100 bg-slate-50 hover:bg-white transition-colors">
+                            <input type="checkbox" id="scan_${r.id}" ${defaultCheck || alreadyWon ? 'checked' : ''}
+                                class="w-4 h-4 rounded text-green-600 cursor-pointer flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-semibold text-slate-800 truncate">${r.name}</div>
+                                <div class="text-[10px] text-slate-400 mono mt-0.5">
+                                    #${r.id} · ${courses.find(c=>c.id===r.id)?.credits||0} CR
+                                    ${r.grade ? `· <span class="text-blue-600 font-semibold">Nota detectada: ${r.grade}</span>` : ''}
+                                    ${r.idMatch ? `· <span class="text-green-600">ID encontrado en doc</span>` : ''}
+                                </div>
+                                ${r.line ? `<div class="text-[10px] text-slate-300 mono truncate mt-0.5" title="${r.line.replace(/"/g,"'")}">↳ "${r.line.substring(0,80)}${r.line.length>80?'…':''}"</div>` : ''}
+                            </div>
+                            <div class="flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ${badgeClass}">${Math.round(r.score*100)}%</span>
+                                ${alreadyWon ? '<span class="text-[9px] text-green-600 font-semibold">Ya ganado</span>' : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    </div>
+                </div>`;
+            };
+
+            html += renderGroup(high, '✓ Alta confianza', 'green', 'text-green-600 bg-green-50 border-green-200', true);
+            html += renderGroup(medium, '~ Confianza media', 'amber', 'text-amber-600 bg-amber-50 border-amber-200', true);
+            html += renderGroup(low, '? Baja confianza — revisa antes de aplicar', 'slate', 'text-slate-500 bg-slate-100 border-slate-200', false);
+
+            html += `<div class="px-5 py-4 flex gap-3">
+                <button onclick="applySelectedCourses()"
+                    class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
+                    ✓ Aplicar cursos seleccionados
+                </button>
+                <button onclick="document.getElementById('scanResult').classList.add('hidden')"
+                    class="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+                    Cancelar
+                </button>
+            </div>`;
+        }
+
+        html += '</div>';
+        const el = document.getElementById('scanResult');
+        el.innerHTML = html;
+        el.classList.remove('hidden');
+    }
+
+    function applySelectedCourses() {
+        const found = window._scanFound || [];
+        let applied = 0;
+        found.forEach(r => {
+            const cb = document.getElementById('scan_' + r.id);
+            if (cb && cb.checked && !state[r.id]) {
+                const markAsWon = (courseId) => {
+                    const c = courses.find(x => x.id === courseId);
+                    if (!c || state[courseId]) return;
+                    state[courseId] = true;
+                    if (c.prereq) c.prereq.forEach(p => markAsWon(p));
+                };
+                markAsWon(r.id);
+                applied++;
+            }
+        });
+        saveState();
+        renderPensum();
+        document.getElementById('scanResult').innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center animate-fade-in">
+                <div class="text-3xl mb-2">✅</div>
+                <div class="font-bold text-green-800 text-lg">${applied} curso${applied!==1?'s':''} aplicado${applied!==1?'s':''}</div>
+                <div class="text-sm text-green-600 mt-1">Prerrequisitos marcados automáticamente.</div>
+                <button onclick="switchTabDirect('pensum')" class="mt-4 px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors">
+                    Ver Pensum →
+                </button>
+            </div>`;
+    }
+
+    function switchTabDirect(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        const tabs = ['pensum', 'planner', 'scanner'];
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', tabs[i] === tab);
+        });
+        if (tab === 'planner') renderPlanner();
+    }
+
+    // ─────────────────────────────────────────────
+    //  INIT
+    // ─────────────────────────────────────────────
+    document.getElementById('filterObligatory').addEventListener('change', renderPensum);
+    loadState();
+    renderPensum();
+    </script>
+</body>
+</html>
