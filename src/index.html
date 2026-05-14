@@ -6,92 +6,7 @@
     <title>Pensum Interactivo - Sistemas USAC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --won: #16a34a;
-            --won-bg: #f0fdf4;
-            --won-border: #86efac;
-            --planned: #2563eb;
-            --planned-bg: #eff6ff;
-            --planned-border: #93c5fd;
-            --locked: #94a3b8;
-            --locked-bg: #f8fafc;
-            --available: #f59e0b;
-            --available-bg: #fffbeb;
-            --available-border: #fcd34d;
-        }
-        * { font-family: 'IBM Plex Sans', sans-serif; }
-        code, .mono { font-family: 'IBM Plex Mono', monospace; }
-
-        .course-card { transition: all 0.15s ease; cursor: default; }
-        .locked { opacity: 0.38; filter: grayscale(0.8); }
-        .prerequisite-highlight { outline: 2px solid #ef4444 !important; transform: scale(1.03); z-index: 10; }
-        .semester-col { min-width: 195px; }
-
-        /* Tabs */
-        .tab-btn { transition: all 0.15s; }
-        .tab-btn.active { background: #1e293b; color: #fff; }
-        .tab-btn:not(.active):hover { background: #e2e8f0; }
-
-        /* Plan cards */
-        .plan-period {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-        .plan-period-header {
-            padding: 12px 16px;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .plan-course-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 16px;
-            border-top: 1px solid #f1f5f9;
-            font-size: 12px;
-        }
-        .plan-course-item:hover { background: #f8fafc; }
-        .credit-bar {
-            height: 6px;
-            border-radius: 3px;
-            background: #e2e8f0;
-            overflow: hidden;
-        }
-        .credit-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.4s ease;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Drag & drop */
-        .drop-zone { transition: all 0.15s; }
-        .drop-zone.drag-over { background: #eff6ff !important; border-color: #3b82f6 !important; }
-
-        /* Modal */
-        #addCourseModal { transition: opacity 0.2s; }
-
-        .badge-won { background: var(--won-bg); color: var(--won); border: 1px solid var(--won-border); }
-        .badge-planned { background: var(--planned-bg); color: var(--planned); border: 1px solid var(--planned-border); }
-        .badge-available { background: var(--available-bg); color: var(--available); border: 1px solid var(--available-border); }
-        
-        .animate-fade-in { animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-50 min-h-screen">
 
@@ -111,9 +26,9 @@
 
             <!-- Tabs -->
             <div class="flex gap-1 bg-slate-100 p-1 rounded-lg ml-2">
-                <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">📋 Pensum</button>
-                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">📅 Planificador</button>
-                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">🤖 Escanear Notas</button>
+                <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">Pensum</button>
+                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">Planificador</button>
+                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">Escanear Notas</button>
             </div>
 
             <div class="flex items-center gap-4 ml-auto">
@@ -124,10 +39,19 @@
                     </div>
                     <span class="text-xs font-semibold text-slate-600">Solo Obligatorios</span>
                 </label>
+<!-- 
+                <label class="flex items-center cursor-pointer gap-2">
+                    <div class="relative">
+                        <input type="checkbox" id="filterObligatory" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600">CLAR</span>
+                </label> -->
+                    
                 <div class="flex gap-2">
-                    <button onclick="exportJSON()" class="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">⬇ Exportar</button>
+                    <button onclick="exportJSON()" class="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">Exportar</button>
                     <label class="text-xs px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors cursor-pointer">
-                        ⬆ Importar<input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
+                        Importar<input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
                     </label>
                     <button onclick="resetPensum()" class="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors">Resetear</button>
                 </div>
@@ -156,8 +80,8 @@
                     </div>
                 </div>
                 <div class="mt-2 text-[10px] text-slate-400 space-y-0.5">
-                    <div>&lt;70 → 36 cr &nbsp;|&nbsp; 70–74 → 40 cr</div>
-                    <div>75–84 → 44 cr &nbsp;|&nbsp; 85+ → 48 cr</div>
+                    <div>&lt;70 → 36 cr &nbsp;|&nbsp; 70-74 → 40 cr</div>
+                    <div>75-84 → 44 cr &nbsp;|&nbsp; 85+ → 48 cr</div>
                 </div>
             </div>
 
@@ -169,6 +93,7 @@
                     <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block flex-shrink-0"></span> Planeado</div>
                     <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block flex-shrink-0"></span> Disponible</div>
                     <div class="flex items-center gap-2 text-xs"><span class="w-3 h-3 rounded-full bg-slate-300 inline-block flex-shrink-0"></span> Bloqueado</div>
+                    <div class="flex items-center gap-2 text-xs"><span class="w-3 border-l-[3px] border-blue-500 h-3 inline-block flex-shrink-0"></span> <span class="obligatory-badge">★ Obligatorio</span></div>
                 </div>
             </div>
 
@@ -198,16 +123,15 @@
     <div id="tab-scanner" class="tab-content hidden max-w-3xl mx-auto p-6">
         <div class="mb-5">
             <h2 class="text-xl font-bold text-slate-900 mb-1">Escanear Notas</h2>
-            <p class="text-sm text-slate-500">Sube tu hoja de notas en PDF con texto seleccionable. Se extrae el texto en el navegador y se compara contra los nombres del pensum — sin IA, sin internet.</p>
+            <p class="text-sm text-slate-500">Sube tu hoja de notas en PDF con texto seleccionable. Se extrae el texto en el navegador y se compara contra los nombres del pensum.</p>
         </div>
 
         <!-- Info banner -->
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 flex gap-3 items-start">
-            <span class="text-lg flex-shrink-0">ℹ️</span>
             <div class="text-xs text-blue-800 space-y-1">
                 <div><b>Funciona con:</b> PDFs de CIG/SIA con texto seleccionable (la mayoría de reportes oficiales de USAC).</div>
                 <div><b>No funciona con:</b> PDFs escaneados como imagen o fotos de pantalla.</div>
-                <div><b>Privacidad:</b> el archivo nunca sale de tu navegador.</div>
+                <div><b>Privacidad:</b> El archivo nunca sale de tu navegador.</div>
             </div>
         </div>
 
@@ -218,9 +142,8 @@
             ondragover="event.preventDefault(); this.classList.add('drag-over')"
             ondragleave="this.classList.remove('drag-over')"
             ondrop="handleDrop(event)">
-            <div class="text-5xl mb-3">📄</div>
             <div class="font-semibold text-slate-700 mb-1">Arrastra tu PDF aquí</div>
-            <div class="text-xs text-slate-400">o haz clic para seleccionar · Solo PDF</div>
+            <div class="text-xs text-slate-400">o haz clic para seleccionar - Solo PDF</div>
             <input type="file" id="pdfInput" accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
         </div>
 
@@ -285,6 +208,55 @@
         </div>
     </div>
 
+    <!-- GRADES MODAL -->
+    <div id="gradesModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl m-4 animate-fade-in flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+                <div>
+                    <h3 class="font-bold text-slate-900">📊 Cursos y Notas Escaneadas</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Edita las notas si hay errores en el escaneo. El promedio se calcula automáticamente.</p>
+                </div>
+                <button onclick="closeGradesModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-xl font-bold">×</button>
+            </div>
+            <!-- Promedio display -->
+            <div id="gradesPromedioBar" class="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-4 flex-shrink-0">
+                <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Promedio calculado:</div>
+                <div id="gradesPromedioValue" class="text-2xl font-bold mono text-blue-700">—</div>
+                <div id="gradesCreditDisplay" class="text-xs text-slate-400"></div>
+                <div id="gradesMaxCrDisplay" class="ml-auto text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5"></div>
+            </div>
+            <!-- Table -->
+            <div class="overflow-y-auto flex-1">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Curso</th>
+                            <th class="text-center px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider w-16">CR</th>
+                            <th class="text-center px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Nota</th>
+                            <th class="text-center px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradesTableBody" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
+            <!-- Actions -->
+            <div class="px-6 py-4 border-t border-slate-100 flex gap-3 flex-shrink-0">
+                <button onclick="applyGradesAndClose()"
+                    class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
+                    ✓ Aplicar cursos y promedio
+                </button>
+                <button onclick="addManualCourseRow()"
+                    class="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+                    + Agregar fila
+                </button>
+                <button onclick="closeGradesModal()"
+                    class="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
     // ─────────────────────────────────────────────
     //  DATA
@@ -294,21 +266,21 @@
         { id: "0069", name: "Técnica Complementaria", credits: 3, semester: 1, prereq: [], obligatory: true },
         { id: "0101", name: "Matemática Básica 1", credits: 7, semester: 1, prereq: [], obligatory: true },
         { id: "0348", name: "Química General", credits: 3, semester: 1, prereq: [], obligatory: true },
-        { id: "0006", name: "Idioma Técnico 1", credits: 2, semester: 1, prereq: [], obligatory: false },
-        { id: "0039", name: "Deportes 1", credits: 1, semester: 1, prereq: [], obligatory: false },
+        { id: "0006", name: "Idioma Técnico 1", credits: 2, semester: 1, prereq: [], obligatory: true },
+        { id: "0039", name: "Deportes 1", credits: 1, semester: 1, prereq: [], obligatory: true },
         { id: "0005", name: "Técnicas de Estudio e Investigación", credits: 3, semester: 2, prereq: [], obligatory: true },
         { id: "0019", name: "Social Humanística 2", credits: 4, semester: 2, prereq: ["0017"], obligatory: true },
         { id: "0103", name: "Matemática Básica 2", credits: 7, semester: 2, prereq: ["0101"], obligatory: true },
         { id: "0147", name: "Física Básica", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
-        { id: "0008", name: "Idioma Técnico 2", credits: 2, semester: 2, prereq: ["0006"], obligatory: false },
-        { id: "0040", name: "Deportes 2", credits: 1, semester: 2, prereq: ["0039"], obligatory: false },
+        { id: "0008", name: "Idioma Técnico 2", credits: 2, semester: 2, prereq: ["0006"], obligatory: true },
+        { id: "0040", name: "Deportes 2", credits: 1, semester: 2, prereq: ["0039"], obligatory: true },
         { id: "0107", name: "Matemática Intermedia 1", credits: 10, semester: 3, prereq: ["0103"], obligatory: true },
         { id: "0150", name: "Física 1", credits: 6, semester: 3, prereq: ["0103", "0147"], obligatory: true },
         { id: "0770", name: "Intro a la Programación 1", credits: 4, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
         { id: "0795", name: "Lógica de Sistemas", credits: 2, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
         { id: "0960", name: "Matemática para Computación 1", credits: 5, semester: 3, prereq: ["0103"], minCredits: 33, obligatory: true },
         { id: "0018", name: "Filosofía de la Ciencia", credits: 3, semester: 3, prereq: ["0019"], obligatory: false },
-        { id: "0009", name: "Idioma Técnico 3", credits: 2, semester: 3, prereq: ["0008"], obligatory: false },
+        { id: "0009", name: "Idioma Técnico 3", credits: 2, semester: 3, prereq: ["0008"], obligatory: true },
         { id: "0112", name: "Matemática Intermedia 2", credits: 5, semester: 4, prereq: ["0107"], obligatory: true },
         { id: "0114", name: "Matemática Intermedia 3", credits: 5, semester: 4, prereq: ["0107"], obligatory: true },
         { id: "0152", name: "Física 2", credits: 6, semester: 4, prereq: ["0107", "0150"], obligatory: true },
@@ -318,7 +290,7 @@
         { id: "0962", name: "Matemática para Computación 2", credits: 5, semester: 4, prereq: ["0770", "0960", "0795"], obligatory: true },
         { id: "2025", name: "Prácticas Iniciales", credits: 0, semester: 4, prereq: ["0770"], obligatory: true },
         { id: "0010", name: "Lógica", credits: 2, semester: 4, prereq: ["0019"], obligatory: false },
-        { id: "0011", name: "Idioma Técnico 4", credits: 2, semester: 4, prereq: ["0009"], obligatory: false },
+        { id: "0011", name: "Idioma Técnico 4", credits: 2, semester: 4, prereq: ["0009"], obligatory: true },
         { id: "0061", name: "Congresos", credits: 2, semester: 4, prereq: [], obligatory: false },
         { id: "0116", name: "Matemática Aplicada 3", credits: 5, semester: 5, prereq: ["0112", "0114"], obligatory: true },
         { id: "0118", name: "Matemática Aplicada 1", credits: 6, semester: 5, prereq: ["0112", "0114"], obligatory: true },
@@ -773,10 +745,13 @@
         if (isWon) { badgeClass = 'badge-won'; statusLabel = '✓ Ganado'; }
         else { badgeClass = 'badge-planned'; statusLabel = 'Planeado'; }
 
-        return `<div class="plan-course-item">
+        return `<div class="plan-course-item ${c.obligatory ? 'obligatory-course' : ''}">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="min-w-0">
-                    <div class="font-semibold text-slate-800 truncate" style="max-width:340px">${c.name}</div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <div class="font-semibold text-slate-800 truncate" style="max-width:300px">${c.name}</div>
+                        ${c.obligatory ? `<span class="obligatory-badge">★ Obligatorio</span>` : ''}
+                    </div>
                     <div class="text-[10px] text-slate-400 mono mt-0.5">#${c.id} · ${c.credits} CR · Sem ${c.semester}</div>
                 </div>
             </div>
@@ -849,9 +824,12 @@
             const vacFull = isVacation && vacCourseCount >= 2;
             const disabled = vacFull && !state[c.id];
 
-            return `<div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors ${disabled ? 'opacity-40' : ''}">
+            return `<div class="flex items-center justify-between p-2.5 rounded-lg border ${c.obligatory ? 'border-blue-100 bg-blue-50/30' : 'border-slate-100'} hover:border-slate-200 hover:bg-slate-50 transition-colors ${disabled ? 'opacity-40' : ''}">
                 <div>
-                    <div class="text-sm font-semibold text-slate-800">${c.name}</div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <div class="text-sm font-semibold text-slate-800">${c.name}</div>
+                        ${c.obligatory ? `<span class="obligatory-badge">★ Oblig.</span>` : ''}
+                    </div>
                     <div class="text-[10px] text-slate-400 mono">#${c.id} · ${c.credits} CR · Sem ${c.semester}
                         ${!available ? '<span class="ml-2 text-amber-500">⚠ Prerrequisitos pendientes</span>' : ''}
                     </div>
@@ -1009,15 +987,8 @@
                 throw new Error('No se pudo extraer texto. El PDF puede ser una imagen escaneada.');
             }
 
-            // ── Parse FIUSAC format ───────────────────────────────
-            // Strategy 1: Regex on full flat text — look for  CÓDIGO  ...  NOTA
-            // The FIUSAC format has tokens like: 0005  TECNICAS...  3  2020-05  70.00
-            // We scan the flat text for 4-digit codes followed eventually by a grade 61–100
-
             const flatText = rowStrings.join(' ');
 
-            // Match pattern: 4-digit code, then anything, then date YYYY-MM, then grade or "Aprobado"
-            // Allow multi-line course names by working on flat text
             const ENTRY_RE = /\b(\d{4})\b(.{0,120}?)\b(\d{4}-\d{2})\b\s*([\d.]+|Aprobado)/g;
 
             const found = [];
@@ -1028,11 +999,9 @@
                 const gradeRaw = match[4];
                 const grade = gradeRaw === 'Aprobado' ? null : parseFloat(gradeRaw);
 
-                // Only consider approved: grade ≥ 61 or "Aprobado"
                 if (grade !== null && grade < 61) continue;
                 if (seenIds.has(code)) continue;
 
-                // Check if this code exists in our pensum
                 const course = courses.find(c => c.id === code);
                 if (!course) continue;
 
@@ -1041,18 +1010,18 @@
                     id: code,
                     name: course.name,
                     grade: gradeRaw === 'Aprobado' ? 'Aprobado' : grade.toFixed(2),
-                    rawLine: match[0].trim()
+                    rawLine: match[0].trim(),
+                    confidence: 'high',
+                    score: 1.0
                 });
             }
 
-            // Strategy 2 (fallback): if Strategy 1 found nothing, just look for any 4-digit
-            // pensum code that appears in the text (less precise but catches edge cases)
             if (found.length === 0) {
                 courses.forEach(c => {
                     const re = new RegExp('\\b' + c.id + '\\b');
                     if (re.test(flatText) && !seenIds.has(c.id)) {
                         seenIds.add(c.id);
-                        found.push({ id: c.id, name: c.name, grade: null, rawLine: '', fallback: true });
+                        found.push({ id: c.id, name: c.name, grade: null, rawLine: '', fallback: true, confidence: 'low', score: 0.5 });
                     }
                 });
             }
@@ -1067,7 +1036,7 @@
                 </div>`;
         } finally {
             btn.disabled = false;
-            btn.innerText = '🔍 Analizar PDF';
+            btn.innerText = 'Analizar PDF';
             updateScanBtn();
         }
     }
@@ -1127,9 +1096,13 @@
             html += renderGroup(low, '? Baja confianza — revisa antes de aplicar', 'slate', 'text-slate-500 bg-slate-100 border-slate-200', false);
 
             html += `<div class="px-5 py-4 flex gap-3">
+                <button onclick="openGradesFromScan()"
+                    class="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors">
+                    📊 Ver notas y aplicar
+                </button>
                 <button onclick="applySelectedCourses()"
                     class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
-                    ✓ Aplicar cursos seleccionados
+                    ✓ Aplicar sin editar
                 </button>
                 <button onclick="document.getElementById('scanResult').classList.add('hidden')"
                     class="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
@@ -1173,6 +1146,20 @@
             </div>`;
     }
 
+    function openGradesFromScan() {
+        const found = window._scanFound || [];
+        const selected = found.filter(r => {
+            const cb = document.getElementById('scan_' + r.id);
+            return cb && cb.checked;
+        });
+        // Attach grades from scan to selected
+        const withGrades = selected.map(r => ({
+            ...r,
+            grade: r.grade && r.grade !== 'Aprobado' ? r.grade : null
+        }));
+        openGradesModal(withGrades);
+    }
+
     function switchTabDirect(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -1185,9 +1172,175 @@
     }
 
     // ─────────────────────────────────────────────
+    //  GRADES MODAL
+    // ─────────────────────────────────────────────
+    let _gradesData = []; // [{ id, name, credits, grade }]
+
+    function openGradesModal(scanResults) {
+        // Build initial data from scan results
+        _gradesData = scanResults.map(r => {
+            const c = courses.find(x => x.id === r.id);
+            return {
+                id: r.id,
+                name: r.name,
+                credits: c ? c.credits : 0,
+                grade: r.grade && r.grade !== 'Aprobado' ? parseFloat(r.grade) : null
+            };
+        });
+        renderGradesTable();
+        document.getElementById('gradesModal').classList.remove('hidden');
+    }
+
+    function closeGradesModal() {
+        document.getElementById('gradesModal').classList.add('hidden');
+    }
+
+    function renderGradesTable() {
+        const tbody = document.getElementById('gradesTableBody');
+        tbody.innerHTML = _gradesData.map((row, idx) => {
+            const alreadyWon = !!state[row.id];
+            return `<tr class="${alreadyWon ? 'opacity-50' : ''} hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-2">
+                    <div class="font-semibold text-slate-800 text-sm">${row.name}</div>
+                    <div class="text-[10px] text-slate-400 mono">#${row.id} · Sem ${courses.find(c=>c.id===row.id)?.semester||'?'} ${alreadyWon?'· <span class="text-green-600">Ya ganado</span>':''}</div>
+                </td>
+                <td class="text-center px-3 py-2 text-xs mono text-slate-500">${row.credits}</td>
+                <td class="text-center px-3 py-2">
+                    <input type="number" min="0" max="100" step="0.01"
+                        class="grade-input"
+                        value="${row.grade !== null && row.grade !== undefined ? row.grade : ''}"
+                        placeholder="—"
+                        oninput="updateGradeRow(${idx}, this.value)"
+                        onblur="formatGradeRow(${idx}, this)">
+                </td>
+                <td class="text-center px-2 py-2">
+                    <button onclick="removeGradeRow(${idx})" class="text-slate-300 hover:text-red-400 text-lg leading-none transition-colors">×</button>
+                </td>
+            </tr>`;
+        }).join('');
+        updateGradesPromedio();
+    }
+
+    function updateGradeRow(idx, val) {
+        _gradesData[idx].grade = val === '' ? null : parseFloat(val);
+        updateGradesPromedio();
+    }
+
+    function formatGradeRow(idx, el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) { el.value = v.toFixed(2); _gradesData[idx].grade = v; }
+        else { el.value = ''; _gradesData[idx].grade = null; }
+        updateGradesPromedio();
+    }
+
+    function removeGradeRow(idx) {
+        _gradesData.splice(idx, 1);
+        renderGradesTable();
+    }
+
+    function addManualCourseRow() {
+        // Show a mini search: add a blank editable row
+        _gradesData.push({ id: null, name: '(selecciona un curso)', credits: 0, grade: null });
+        renderGradesTable();
+        // Replace last row with a searchable select
+        const tbody = document.getElementById('gradesTableBody');
+        const lastRow = tbody.lastElementChild;
+        const idx = _gradesData.length - 1;
+        const firstTd = lastRow.querySelector('td');
+        firstTd.innerHTML = `<select class="w-full border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onchange="selectManualCourse(${idx}, this.value)">
+            <option value="">— elige un curso —</option>
+            ${courses.filter(c => !_gradesData.slice(0,-1).find(r=>r.id===c.id)).map(c =>
+                `<option value="${c.id}">${c.name} (#${c.id})</option>`
+            ).join('')}
+        </select>`;
+    }
+
+    function selectManualCourse(idx, courseId) {
+        const c = courses.find(x => x.id === courseId);
+        if (!c) return;
+        _gradesData[idx] = { id: c.id, name: c.name, credits: c.credits, grade: null };
+        renderGradesTable();
+    }
+
+    function updateGradesPromedio() {
+        const graded = _gradesData.filter(r => r.grade !== null && !isNaN(r.grade));
+        const el = document.getElementById('gradesPromedioValue');
+        const crEl = document.getElementById('gradesCreditDisplay');
+        const maxEl = document.getElementById('gradesMaxCrDisplay');
+        if (graded.length === 0) {
+            el.innerText = '—';
+            crEl.innerText = '';
+            maxEl.innerText = '';
+            return;
+        }
+        const avg = graded.reduce((s, r) => s + r.grade, 0) / graded.length;
+        const rounded = Math.round(avg);
+        el.innerText = rounded;
+
+        // Color feedback
+        el.className = 'text-2xl font-bold mono ' + (rounded >= 85 ? 'text-green-600' : rounded >= 75 ? 'text-blue-700' : rounded >= 70 ? 'text-amber-600' : 'text-red-600');
+
+        crEl.innerText = `(promedio de ${graded.length} cursos con nota)`;
+
+        // Max credits
+        let maxCr, label;
+        if (rounded < 70) { maxCr = 36; label = '36 CR/semestre'; }
+        else if (rounded < 75) { maxCr = 40; label = '40 CR/semestre'; }
+        else if (rounded < 85) { maxCr = 44; label = '44 CR/semestre'; }
+        else { maxCr = 48; label = '48 CR/semestre'; }
+        maxEl.innerHTML = `📚 Puedes asignarte hasta <b>${label}</b>`;
+    }
+
+    function applyGradesAndClose() {
+        // 1. Apply courses as won
+        let applied = 0;
+        _gradesData.forEach(r => {
+            if (!r.id) return;
+            if (!state[r.id]) {
+                const markAsWon = (courseId) => {
+                    const c = courses.find(x => x.id === courseId);
+                    if (!c || state[courseId]) return;
+                    state[courseId] = true;
+                    if (c.prereq) c.prereq.forEach(p => markAsWon(p));
+                };
+                markAsWon(r.id);
+                applied++;
+            }
+        });
+
+        // 2. Calculate and apply promedio
+        const graded = _gradesData.filter(r => r.grade !== null && !isNaN(r.grade));
+        if (graded.length > 0) {
+            const avg = graded.reduce((s, r) => s + r.grade, 0) / graded.length;
+            const rounded = Math.round(avg);
+            document.getElementById('promedio').value = rounded;
+            updatePromedioDisplay();
+        }
+
+        saveState();
+        renderPensum();
+        closeGradesModal();
+
+        // Show success in scanner
+        document.getElementById('scanResult').innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center animate-fade-in">
+                <div class="text-3xl mb-2">✅</div>
+                <div class="font-bold text-green-800 text-lg">${applied} curso${applied!==1?'s':''} aplicado${applied!==1?'s':''}</div>
+                <div class="text-sm text-green-600 mt-1">Promedio actualizado en el planificador. Prerrequisitos marcados automáticamente.</div>
+                <button onclick="switchTabDirect('planner')" class="mt-4 px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors">
+                    Ver Planificador →
+                </button>
+            </div>`;
+    }
+
+    // ─────────────────────────────────────────────
     //  INIT
     // ─────────────────────────────────────────────
     document.getElementById('filterObligatory').addEventListener('change', renderPensum);
+    document.getElementById('gradesModal').addEventListener('click', function(e) {
+        if (e.target === this) closeGradesModal();
+    });
     loadState();
     renderPensum();
     </script>

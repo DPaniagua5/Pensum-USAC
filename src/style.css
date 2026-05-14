@@ -1,0 +1,91 @@
+:root {
+    --won: #16a34a;
+    --won-bg: #f0fdf4;
+    --won-border: #86efac;
+    --planned: #2563eb;
+    --planned-bg: #eff6ff;
+    --planned-border: #93c5fd;
+    --locked: #94a3b8;
+    --locked-bg: #f8fafc;
+    --available: #f59e0b;
+    --available-bg: #fffbeb;
+    --available-border: #fcd34d;
+}
+* { font-family: 'IBM Plex Sans', sans-serif; }
+code, .mono { font-family: 'IBM Plex Mono', monospace; }
+
+.course-card { transition: all 0.15s ease; cursor: default; }
+.locked { opacity: 0.38; filter: grayscale(0.8); }
+.prerequisite-highlight { outline: 2px solid #ef4444 !important; transform: scale(1.03); z-index: 10; }
+.semester-col { min-width: 195px; }
+
+/* Tabs */
+.tab-btn { transition: all 0.15s; }
+.tab-btn.active { background: #1e293b; color: #fff; }
+.tab-btn:not(.active):hover { background: #e2e8f0; }
+
+/* Plan cards */
+.plan-period {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.plan-period-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.plan-course-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 12px;
+}
+.plan-course-item:hover { background: #f8fafc; }
+.credit-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+.credit-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Drag & drop */
+.drop-zone { transition: all 0.15s; }
+.drop-zone.drag-over { background: #eff6ff !important; border-color: #3b82f6 !important; }
+
+/* Modal */
+#addCourseModal { transition: opacity 0.2s; }
+
+.badge-won { background: var(--won-bg); color: var(--won); border: 1px solid var(--won-border); }
+.badge-planned { background: var(--planned-bg); color: var(--planned); border: 1px solid var(--planned-border); }
+.badge-available { background: var(--available-bg); color: var(--available); border: 1px solid var(--available-border); }
+
+.animate-fade-in { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Grades modal */
+#gradesModal { transition: opacity 0.2s; }
+.grade-input { width: 70px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 12px; text-align: center; font-family: 'IBM Plex Mono', monospace; }
+.grade-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+.obligatory-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 700; color: #1d4ed8; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 4px; padding: 1px 5px; letter-spacing: 0.03em; }
+.plan-course-item.obligatory-course { border-left: 3px solid #3b82f6; }
