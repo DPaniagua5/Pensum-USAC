@@ -21,15 +21,26 @@
                 <span class="text-slate-400 text-xs font-normal">CR ganados</span>
                 <span id="totalCredits" class="text-blue-700">0</span>
                 <span class="text-slate-300">/</span>
-                <span class="text-slate-500">250</span>
+                <span id="totalCrMax" class="text-slate-500">250</span>
             </div>
 
             <!-- Tabs -->
-            <div class="flex gap-1 bg-slate-100 p-1 rounded-lg ml-2">
-                <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">Pensum</button>
-                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">Planificador</button>
-                <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">Escanear Notas</button>
-            </div>
+            <!-- Selector de pensum -->
+<div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg">
+    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pensum</span>
+    <select id="pensumSelector" onchange="switchPensum(this.value)"
+        class="bg-white border border-slate-200 rounded-md px-2 py-1 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+        <option value="Antiguo">Antiguo</option>
+        <option value="2022">2022</option>
+        <option value="2025">2025</option>
+    </select>
+</div>
+
+<div class="flex gap-1 bg-slate-100 p-1 rounded-lg ml-2">
+    <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">Pensum</button>
+    <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">Planificador</button>
+    <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">Escanear Notas</button>
+</div>
 
             <div class="flex items-center gap-4 ml-auto">
                 <label class="flex items-center cursor-pointer gap-2">
@@ -79,10 +90,8 @@
                         <div id="maxCredDisplay" class="text-2xl font-bold text-blue-700 mono">44</div>
                     </div>
                 </div>
-                <div class="mt-2 text-[10px] text-slate-400 space-y-0.5">
-                    <div>&lt;70 → 36 cr &nbsp;|&nbsp; 70-74 → 40 cr</div>
-                    <div>75-84 → 44 cr &nbsp;|&nbsp; 85+ → 48 cr</div>
-                </div>
+
+                <div id="creditRulesLegend" class="mt-2 text-[10px] text-slate-400 space-y-0.5"></div>
             </div>
 
             <!-- Legend -->
@@ -257,11 +266,28 @@
         </div>
     </div>
 
+    <!-- COURSE TREE MODAL -->
+<div id="treeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl m-4 animate-fade-in flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+            <div>
+                <h3 id="treeModalTitle" class="font-bold text-slate-900 text-lg"></h3>
+                <p class="text-xs text-slate-400 mt-0.5">Haz click en cualquier curso para ver su árbol</p>
+            </div>
+            <button onclick="closeTreeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-xl font-bold">×</button>
+        </div>
+        <div class="overflow-auto flex-1 p-6">
+            <div id="treeContainer" class="flex flex-col items-center gap-2 min-h-[300px]"></div>
+        </div>
+    </div>
+</div>
+
     <script>
     // ─────────────────────────────────────────────
     //  DATA
     // ─────────────────────────────────────────────
-    const courses = [
+    const pensumData = {
+        "Antiguo":[
         { id: "0017", name: "Social Humanística 1", credits: 4, semester: 1, prereq: [], obligatory: true },
         { id: "0069", name: "Técnica Complementaria", credits: 3, semester: 1, prereq: [], obligatory: true },
         { id: "0101", name: "Matemática Básica 1", credits: 7, semester: 1, prereq: [], obligatory: true },
@@ -359,7 +385,66 @@
         { id: "0789", name: "Sistemas Aplicados 2", credits: 5, semester: 10, prereq: ["0785", "0788"], obligatory: false },
         { id: "0968", name: "Inteligencia Artificial 2", credits: 4, semester: 10, prereq: ["0972"], obligatory: false },
         { id: "0974", name: "Redes de Nueva Generación", credits: 4, semester: 10, prereq: ["0975"], obligatory: false },
-    ];
+    ],
+    "2022":[
+        { id: "0005", name: "Técnicas de Estudio e Investigación", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0017", name: "Social Humanística 1", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0101", name: "Matemática Básica 1", credits: 9, semester: 1, prereq: [], obligatory: true },
+        { id: "0006", name: "Idioma Técnico 1", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0039", name: "Deportes 1", credits: 2, semester: 1, prereq: [], obligatory: true },
+        { id: "0019", name: "Social Humanística 2", credits: 3, semester: 2, prereq: ["0017"], obligatory: true },
+        { id: "0103", name: "Matemática Básica 2", credits: 9, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0147", name: "Física Básica", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0960", name: "Matemática para Computación 1", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0008", name: "Idioma Técnico 2", credits: 3, semester: 2, prereq: ["0006"], obligatory: true },
+        { id: "0040", name: "Deportes 2", credits: 2, semester: 2, prereq: ["0039"], obligatory: true },
+        { id: "0107", name: "Matemática Intermedia 1", credits: 9, semester: 3, prereq: ["0103"], obligatory: true },
+        { id: "0150", name: "Física 1", credits: 5, semester: 3, prereq: ["0103","0147"], obligatory: true },
+        { id: "0770", name: "Introducción a la Programación y Computación 1", credits: 6, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0795", name: "Lógica de Sistemas", credits: 3, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0962", name: "Matemática para Computación 2", credits: 5, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0001", name: "Ética Profesional", credits: 2, semester: 3, prereq: ["0019"], obligatory: false },
+        { id: "0009", name: "Idioma Técnico 3", credits: 3, semester: 3, prereq: ["0008"], obligatory: false },
+        { id: "0112", name: "Matemática Intermedia 2", credits: 6, semester: 4, prereq: ["0107"], obligatory: true },
+        { id: "0114", name: "Matemática Intermedia 3", credits: 6, semester: 4, prereq: ["0107"], obligatory: true },
+        { id: "0152", name: "Física 2", credits: 6, semester: 4, prereq: ["0107", "0150"], obligatory: true },
+        { id: "0771", name: "Introducción a la Programación y Computación 2", credits: 6, semester: 4, prereq: ["0107", "0770", "0795", "0960"], obligatory: true },
+        { id: "0796", name: "Lenguaje Formales y de Programación", credits: 4, semester: 4, prereq: ["0770", "0795", "0960"], obligatory: true },
+        { id: "2025", name: "Prácticas Iniciales", credits: 0, semester: 4, prereq: ["0103", "0770"], obligatory: true },
+        { id: "0010", name: "Lógica", credits: 1, semester: 4, prereq: ["0019"], obligatory: false },
+        { id: "0011", name: "Idioma Técnico 4", credits: 3, semester: 4, prereq: ["0009"], obligatory: false },
+        { id: "0061", name: "Congresos", credits: 2, semester: 4, prereq: [], obligatory: false },
+        { id: "0116", name: "Matemática Aplicada 3", credits: 5, semester: 5, prereq: ["0112", "0114"], obligatory: true },
+        { id: "0118", name: "Matemática Aplicada 1", credits: 5, semester: 5, prereq: ["0112", "0114"], obligatory: true },
+        { id: "0732", name: "Estadística 1", credits: 5, semester: 5, prereq: ["0107", "0005"], obligatory: true },
+        { id: "0772", name: "Estructura de Datos", credits: 6, semester: 5, prereq: ["0771", "0796", "0962"], obligatory: true },
+        { id: "0777", name: "Organización de Lenguajes y Compiladores 1", credits: 6, semester: 5, prereq: ["0771", "0796", "0962"], obligatory: true },
+        { id: "0964", name: "Organización Computacional", credits: 4, semester: 5, prereq: ["0152", "0771", "0962"], obligatory: true },
+        { id: "0018", name: "Filosofía de la Ciencia", credits: 1, semester: 5, prereq: ["0019"], obligatory: false },
+        { id: "0014", name: "Economía", credits: 3, semester: 6, prereq: ["0732"], obligatory: true },
+        { id: "0601", name: "Investigación de Operaciones 1", credits: 6, semester: 6, prereq: ["0732", "0771"], obligatory: true },
+        { id: "0722", name: "Teoría de Sistemas 1", credits: 4, semester: 6, prereq: ["0116", "0118", "0732", "0772"], obligatory: true },
+        { id: "0773", name: "Manejo e Implementación de Archivos", credits: 5, semester: 6, prereq: ["0772", "0796"], obligatory: true },
+        { id: "0778", name: "Arquitectura de Computadores y Ensambladores 1", credits: 5, semester: 6, prereq: ["0796", "0964"], obligatory: true },
+        { id: "0781", name: "Organización de Lenguajes y Compiladores 2", credits: 6, semester: 6, prereq: ["0772", "0777"], obligatory: true },
+        { id: "0120", name: "Matemática Aplicada 2", credits: 5, semester: 6, prereq: ["0118"], obligatory: false },
+        { id: "0122", name: "Matemática Aplicada 4", credits: 5, semester: 6, prereq: ["0118"], obligatory: false },
+        { id: "0200", name: "Ingeniería Eléctrica 1", credits: 6, semester: 6, prereq: ["0114", "0152"], obligatory: false },
+        { id: "0281", name: "Sistemas Operativos 1", credits: 6, semester: 7, prereq: ["0778", "0781"], obligatory: true },
+        { id: "0603", name: "Investigación de Operaciones 2", credits: 6, semester: 7, prereq: ["0601"], obligatory: true },        
+        { id: "0724", name: "Teoría de Sistemas 2", credits: 4, semester: 7, prereq: ["0601", "0722"], obligatory: true },        
+        { id: "0774", name: "Sistemas de Bases de Datos 1", credits: 6, semester: 7, prereq: ["0773"], obligatory: true },        
+        { id: "0779", name: "Arquitectura de Computadores y Ensambladores 2", credits: 5, semester: 7, prereq: ["0778"], obligatory: true },        
+        { id: "0970", name: "Redes de Computadoras 1", credits: 5, semester: 7, prereq: ["0773", "0778"], obligatory: true },        
+        { id: "2036", name: "Prácticas Intermedias", credits: 0, semester: 7, prereq: ["0773", "0777", "0778", "2025"], obligatory: true },        
+        { id: "0734", name: "Estadística 2", credits: 5, semester: 7, prereq: ["0732"], obligatory: false },        
+        
+    ]
+
+};
+
+let activePensumKey = "Antiguo";
+let courses = pensumData[activePensumKey];
 
     // ─────────────────────────────────────────────
     //  STATE
@@ -369,27 +454,59 @@
     let currentTab = 'pensum';
     let modalPeriodId = null;
 
+    function getStorageKey() {
+    return 'usac_pensum_v2_' + activePensumKey;
+}
+
     function loadState() {
         try {
-            const raw = localStorage.getItem('usac_pensum_v2');
+            const raw = localStorage.getItem(getStorageKey());
             if (raw) {
                 const parsed = JSON.parse(raw);
                 state = parsed.state || {};
                 plan = parsed.plan || [];
+            } else {
+                state = {}; plan = [];
             }
         } catch(e) { state = {}; plan = []; }
     }
 
     function saveState() {
-        localStorage.setItem('usac_pensum_v2', JSON.stringify({ state, plan }));
+        localStorage.setItem(getStorageKey(), JSON.stringify({ state, plan }));
+    }
+
+    function switchPensum(key) {
+        localStorage.setItem('usac_promedio_' + activePensumKey, 
+            document.getElementById('promedio').value);
+        
+        activePensumKey = key;
+        courses = pensumData[key];
+        state = {}; plan = [];
+        loadState();
+        const savedProm = localStorage.getItem('usac_promedio_' + key);
+        document.getElementById('promedio').value = savedProm || 75;
+        updatePromedioDisplay();
+
+        renderPensum();
+        if (currentTab === 'planner') renderPlanner();
+        // Actualiza el contador de créditos totales (cambia según pensum)
+        const pensumTotals = { 'antiguo': 250, '2022': 300, '2025': 300 };
+        document.getElementById('totalCrMax').innerText = pensumTotals[activePensumKey] || 250;
     }
 
     function getMaxCredits() {
         const p = parseFloat(document.getElementById('promedio').value) || 0;
-        if (p < 70) return 36;
-        if (p < 75) return 40;
-        if (p < 85) return 44;
-        return 48;
+        if (activePensumKey === 'Antiguo') {
+            if (p < 70)      return 36;
+            else if (p < 75) return 40;
+            else if (p < 85) return 44;
+            else return 48;
+        } else {
+            // Pensums 2022 y 2025
+            if (p <= 70)     return 32;
+            else if (p <= 85) return 37;
+            else             return 42;
+        }
     }
 
     // All course IDs that are "planned" (in any period)
@@ -427,6 +544,99 @@
         const hasPrereqs = c.prereq.every(p => simulatedWon.has(p));
         const hasMinCr = c.minCredits ? wonCredits >= c.minCredits : true;
         return hasPrereqs && hasMinCr;
+    }
+
+// ─────────────────────────────────────────────
+//  COURSE TREE VISUALIZER
+// ─────────────────────────────────────────────
+function openTreeModal(courseId) {
+    const c = courses.find(x => x.id === courseId);
+    if (!c) return;
+
+    document.getElementById('treeModalTitle').textContent = c.name;
+
+    // Find prereqs (courses this one depends on)
+    const prereqs = (c.prereq || []).map(pid => courses.find(x => x.id === pid)).filter(Boolean);
+
+    // Find postreqs (courses that list this one as a prereq)
+    const postreqs = courses.filter(x => (x.prereq || []).includes(courseId));
+
+    const container = document.getElementById('treeContainer');
+    container.innerHTML = '';
+
+    // Section: prereqs
+    if (prereqs.length > 0) {
+        const label = document.createElement('div');
+        label.className = 'text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 self-start';
+        label.textContent = 'Prerrequisitos (necesitas ganar)';
+        container.appendChild(label);
+
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap gap-3 justify-center mb-2';
+        prereqs.forEach(p => row.appendChild(makeTreeNode(p, 'prereq')));
+        container.appendChild(row);
+
+        const arrow = document.createElement('div');
+        arrow.className = 'text-2xl text-slate-300 my-1';
+        arrow.textContent = '↓';
+        container.appendChild(arrow);
+    }
+
+    container.appendChild(makeTreeNode(c, 'self'));
+
+    if (postreqs.length > 0) {
+        const arrow = document.createElement('div');
+        arrow.className = 'text-2xl text-blue-300 my-1';
+        arrow.textContent = '↓';
+        container.appendChild(arrow);
+
+        const label = document.createElement('div');
+        label.className = 'text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1 self-start';
+        label.textContent = '↓ Desbloquea estos cursos';
+        container.appendChild(label);
+
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap gap-3 justify-center';
+        postreqs.forEach(p => row.appendChild(makeTreeNode(p, 'postreq')));
+        container.appendChild(row);
+    }
+
+    if (prereqs.length === 0 && postreqs.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-slate-400 text-sm mt-8';
+        empty.textContent = 'Este curso no tiene prerrequisitos ni desbloquea otros cursos directamente.';
+        container.appendChild(empty);
+    }
+
+    document.getElementById('treeModal').classList.remove('hidden');
+}
+
+    function makeTreeNode(c, type) {
+        const won = !!state[c.id];
+        const available = isCourseAvailable(c.id, new Set(Object.keys(state).filter(k => state[k])));
+
+        const colors = {
+            self:    won ? 'border-green-400 bg-green-50' : 'border-blue-400 bg-blue-50',
+            prereq:  won ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50',
+            postreq: won ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-slate-50',
+        };
+
+        const node = document.createElement('div');
+        node.className = `tree-node cursor-pointer rounded-xl border-2 ${colors[type]} p-3 w-48 text-center shadow-sm hover:shadow-md`;
+        node.innerHTML = `
+            <div class="font-bold text-slate-800 text-xs leading-snug">${c.name}</div>
+            <div class="text-[10px] text-slate-500 mono mt-1">#${c.id} · ${c.credits} CR · Sem ${c.semester}</div>
+            <div class="text-[10px] mt-1 font-semibold ${won ? 'text-green-600' : available ? 'text-amber-600' : 'text-slate-400'}">
+                ${won ? 'Ganado' : available ? 'Disponible' : 'Bloqueado'}
+            </div>
+            ${c.obligatory ? '<div class="obligatory-badge mx-auto mt-1">★ Oblig.</div>' : ''}
+        `;
+        node.onclick = () => openTreeModal(c.id);
+        return node;
+    }
+
+    function closeTreeModal() {
+        document.getElementById('treeModal').classList.add('hidden');
     }
 
     // ─────────────────────────────────────────────
@@ -474,7 +684,7 @@
                 else if (isLocked) { borderClass = 'border-slate-200'; bgClass = 'bg-slate-50'; }
                 else { borderClass = 'border-amber-300'; bgClass = 'bg-amber-50'; }
 
-                card.className = `course-card relative p-3 mb-2 rounded-lg border shadow-sm 
+                card.className = `course-card relative p-3 mb-2 rounded-lg border shadow-sm cursor-pointer 
                     ${bgClass} ${borderClass}
                     ${isLocked && !isWon ? 'locked' : 'hover:shadow-md'}`;
                 card.dataset.id = course.id;
@@ -502,6 +712,7 @@
                             class="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer">
                     </div>
                 `;
+                card.onclick = (e) => { if (e.target.type !== 'checkbox') openTreeModal(course.id); };
                 card.onmouseover = () => highlightChain(course.prereq);
                 card.onmouseout = () => clearHighlights();
                 column.appendChild(card);
@@ -539,8 +750,8 @@
         document.querySelectorAll('.course-card').forEach(el => el.classList.remove('prerequisite-highlight'));
     }
     function updateUI() {
-        const total = courses.reduce((acc, c) => state[c.id] ? acc + c.credits : acc, 0);
-        document.getElementById('totalCredits').innerText = total;
+        const pensumTotals = { 'antiguo': 250, '2022': 300, '2025': 300 };
+        document.getElementById('totalCrMax').innerText = pensumTotals[activePensumKey] || 250;
     }
     function resetPensum() {
         if (confirm('¿Seguro que quieres borrar TODO el progreso y el plan?')) {
@@ -585,9 +796,9 @@
                 renderPensum();
                 updatePromedioDisplay();
                 if (currentTab === 'planner') renderPlanner();
-                alert('✅ Progreso importado correctamente');
+                alert('Progreso importado correctamente');
             } catch(err) {
-                alert('❌ Archivo JSON inválido');
+                alert('Archivo JSON inválido');
             }
         };
         reader.readAsText(file);
@@ -600,6 +811,14 @@
     function updatePromedioDisplay() {
         document.getElementById('maxCredDisplay').innerText = getMaxCredits();
         if (currentTab === 'planner') renderPlanner();
+        const legend = document.getElementById('creditRulesLegend');
+        if (activePensumKey === 'Antiguo') {
+            legend.innerHTML = `<div>&lt;70 → 36 cr &nbsp;|&nbsp; 70-74 → 40 cr</div>
+                                <div>75-84 → 44 cr &nbsp;|&nbsp; 85+ → 48 cr</div>`;
+        } else {
+            legend.innerHTML = `<div>≤70 → 32 cr CLAR &nbsp;|&nbsp; 71-85 → 37 cr CLAR</div>
+                                <div>86+ → 42 cr CLAR</div>`;
+        }
     }
 
     function addPeriod(type) {
@@ -661,7 +880,7 @@
             </div>
             <div class="flex items-center gap-2 ml-4 pl-4 border-l border-slate-200">
                 <span class="text-slate-500">Total acumulado planeado:</span>
-                <span class="font-bold text-slate-800">${wonCr + plannedCr} / 250 CR</span>
+                <span id="totalCrMax" class="font-bold text-slate-800">${wonCr + plannedCr} </span>
             </div>
         `;
 
@@ -831,7 +1050,7 @@
                         ${c.obligatory ? `<span class="obligatory-badge">★ Oblig.</span>` : ''}
                     </div>
                     <div class="text-[10px] text-slate-400 mono">#${c.id} · ${c.credits} CR · Sem ${c.semester}
-                        ${!available ? '<span class="ml-2 text-amber-500">⚠ Prerrequisitos pendientes</span>' : ''}
+                        ${!available ? '<span class="ml-2 text-amber-500">Prerrequisitos pendientes</span>' : ''}
                     </div>
                 </div>
                 <button onclick="${disabled ? '' : `addCourseToPeriod(${modalPeriodId}, '${c.id}')`}"
@@ -1285,11 +1504,18 @@
 
         // Max credits
         let maxCr, label;
-        if (rounded < 70) { maxCr = 36; label = '36 CR/semestre'; }
-        else if (rounded < 75) { maxCr = 40; label = '40 CR/semestre'; }
-        else if (rounded < 85) { maxCr = 44; label = '44 CR/semestre'; }
-        else { maxCr = 48; label = '48 CR/semestre'; }
-        maxEl.innerHTML = `📚 Puedes asignarte hasta <b>${label}</b>`;
+        if (activePensumKey === 'Antiguo') {
+            if (rounded < 70)      { maxCr = 36; label = '36 CR/semestre'; }
+            else if (rounded < 75) { maxCr = 40; label = '40 CR/semestre'; }
+            else if (rounded < 85) { maxCr = 44; label = '44 CR/semestre'; }
+            else                   { maxCr = 48; label = '48 CR/semestre'; }
+        } else {
+            // Pensums 2022 y 2025
+            if (rounded <= 70)     { maxCr = 32; label = '32 CR CLAR/semestre'; }
+            else if (rounded <= 85){ maxCr = 37; label = '37 CR CLAR/semestre'; }
+            else                   { maxCr = 42; label = '42 CR CLAR/semestre'; }
+        }
+        maxEl.innerHTML = `Puedes asignarte hasta <b>${label}</b>`;
     }
 
     function applyGradesAndClose() {
