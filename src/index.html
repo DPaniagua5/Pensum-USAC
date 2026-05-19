@@ -40,6 +40,7 @@
     <button class="tab-btn active px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('pensum')">Pensum</button>
     <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">Planificador</button>
     <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">Escanear Notas</button>
+    <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('schedule')">Horario</button>
 </div>
 
             <div class="flex items-center gap-4 ml-auto">
@@ -183,7 +184,7 @@
         <!-- Scan button -->
         <button id="scanBtn" onclick="scanDocument()" disabled
             class="w-full py-3 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed mb-5">
-            🔍 Analizar PDF
+            Analizar PDF
         </button>
 
         <!-- Extracted text (collapsible) -->
@@ -198,6 +199,52 @@
         <div id="scanStatus" class="hidden"></div>
         <div id="scanResult" class="hidden"></div>
     </div>
+
+    <!-- TAB HORARIO -->
+<div id="tab-schedule" class="tab-content hidden h-full flex flex-col gap-4 overflow-hidden">
+
+    <!-- Controles superiores -->
+    <div class="flex items-center gap-3 flex-shrink-0 flex-wrap">
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex-1 min-w-64">
+            <span class="text-slate-400">🔍</span>
+            <input id="scheduleSearch" type="text" placeholder="Buscar curso por nombre o código..."
+                class="flex-1 text-sm outline-none bg-transparent text-slate-700"
+                oninput="filterScheduleCourses(this.value)">
+        </div>
+        <button onclick="clearSchedule()"
+            class="px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors">
+            🗑 Limpiar horario
+        </button>
+        <button onclick="downloadSchedulePDF()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
+            ⬇ Descargar PDF
+        </button>
+    </div>
+
+    <div class="flex gap-4 flex-1 overflow-hidden min-h-0">
+
+        <!-- Panel izquierdo: lista de cursos disponibles -->
+        <div class="w-80 flex-shrink-0 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex-shrink-0">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cursos disponibles</div>
+                <div id="scheduleLoadStatus" class="text-[10px] text-slate-400 mt-1">Cargando horarios...</div>
+            </div>
+            <div id="scheduleCourseList" class="overflow-y-auto flex-1 divide-y divide-slate-50 text-sm"></div>
+        </div>
+
+        <!-- Panel derecho: calendario semanal -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- Resumen de cursos seleccionados -->
+            <div id="scheduleSelectedCards" class="flex gap-2 flex-wrap mb-3 flex-shrink-0"></div>
+
+            <!-- Calendario -->
+            <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-auto">
+                <div id="weekCalendar" class="min-w-[600px]"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- ADD COURSE MODAL -->
     <div id="addCourseModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -675,6 +722,7 @@ function openTreeModal(courseId) {
         if (event && event.target) event.target.classList.add('active');
         if (tab === 'planner') renderPlanner();
         if (tab === 'scanner') updateScanBtn();
+        if (tab === 'schedule') loadScheduleData();
     }
 
     // ─────────────────────────────────────────────
@@ -1550,6 +1598,74 @@ function openTreeModal(courseId) {
         }
         maxEl.innerHTML = `Puedes asignarte hasta <b>${label}</b>`;
     }
+
+let scheduleData = [];          // todos los cursos del servidor
+let selectedSections = [];      // [{ courseId, section, slots, color, name, teacher, building, room }]
+let scheduleLoaded = false;
+
+const SCHEDULE_COLORS = [
+    { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
+    { bg: '#dcfce7', border: '#22c55e', text: '#166534' },
+    { bg: '#fef9c3', border: '#eab308', text: '#854d0e' },
+    { bg: '#fce7f3', border: '#ec4899', text: '#9d174d' },
+    { bg: '#ede9fe', border: '#8b5cf6', text: '#5b21b6' },
+    { bg: '#ffedd5', border: '#f97316', text: '#9a3412' },
+    { bg: '#cffafe', border: '#06b6d4', text: '#164e63' },
+    { bg: '#fef2f2', border: '#ef4444', text: '#991b1b' },
+];
+
+const DAY_MAP = { 'LU': 1, 'MA': 2, 'MI': 3, 'JU': 4, 'VI': 5, 'SA': 6, 'DO': 0 };
+const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_KEYS = [1, 2, 3, 4, 5, 6];
+
+async function loadScheduleData() {
+    if (scheduleLoaded) return;
+    document.getElementById('scheduleLoadStatus').textContent = 'Cargando desde servidor...';
+    try {
+        const res = await fetch('https://usuarios.ingenieria.usac.edu.gt/horarios/vacaciones/1');
+        console.log(res);
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const rows = doc.querySelectorAll('table tr');
+        const raw = [];
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 8) return;
+            const nameCell = cells[0].textContent.trim();
+            const match = nameCell.match(/^(\d+)\s+(.+)$/);
+            if (!match) return;
+            raw.push({
+                id: match[1],
+                name: match[2],
+                section: cells[1].textContent.trim(),
+                modality: cells[2].textContent.trim(),
+                building: cells[3].textContent.trim(),
+                room: cells[4].textContent.trim(),
+                start: cells[5].textContent.trim(),
+                end: cells[6].textContent.trim(),
+                days: cells[7].textContent.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined),
+                teacher: cells[8].textContent.trim(),
+                aux: cells[9].textContent.trim(),
+            });
+        });
+
+        // Group by course+section (a section may have multiple time slots)
+        const grouped = {};
+        raw.forEach(r => {
+            const key = r.id + '_' + r.section;
+            if (!grouped[key]) grouped[key] = { ...r, slots: [] };
+            grouped[key].slots.push({ start: r.start, end: r.end, days: r.days });
+        });
+        scheduleData = Object.values(grouped);
+        scheduleLoaded = true;
+        document.getElementById('scheduleLoadStatus').textContent = `${scheduleData.length} secciones disponibles`;
+        renderScheduleCourseList(scheduleData);
+    } catch (e) {
+        document.getElementById('scheduleLoadStatus').textContent = 'Error al cargar. Verifica tu conexión.';
+    }
+}
+
 
     function applyGradesAndClose() {
         // 1. Apply courses as won
