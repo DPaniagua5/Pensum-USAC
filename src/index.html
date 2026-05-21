@@ -50,16 +50,7 @@
                         <div class="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
                     </div>
                     <span class="text-xs font-semibold text-slate-600">Solo Obligatorios</span>
-                </label>
-<!-- 
-                <label class="flex items-center cursor-pointer gap-2">
-                    <div class="relative">
-                        <input type="checkbox" id="filterObligatory" class="sr-only peer">
-                        <div class="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
-                    </div>
-                    <span class="text-xs font-semibold text-slate-600">CLAR</span>
-                </label> -->
-                    
+                </label>                    
                 <div class="flex gap-2">
                     <button onclick="exportJSON()" class="text-xs px-3 py-1.5 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700 transition-colors">Exportar</button>
                     <label class="text-xs px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors cursor-pointer">
@@ -203,6 +194,33 @@
     <!-- TAB HORARIO -->
 <div id="tab-schedule" class="tab-content hidden h-full flex flex-col gap-4 overflow-hidden">
 
+    <!-- Selector de periodo -->
+    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Periodo</span>
+        <select id="schedulePeriodo" onchange="changePeriodo(this.value)"
+            class="bg-transparent text-sm font-bold text-slate-800 focus:outline-none cursor-pointer">
+            <option value="semestre1">Primer Semestre</option>
+            <option value="vacaciones1" selected>Vacaciones Junio</option>
+            <option value="semestre2">Segundo Semestre</option>
+            <option value="vacaciones2">Vacaciones Diciembre</option>
+        </select>
+    </div>
+
+    <!-- Filtros -->
+    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mostrar</span>
+        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+            <input type="checkbox" id="filterHideWon" checked onchange="renderScheduleCourseList(getFilteredSchedule())"
+                class="w-3.5 h-3.5 rounded text-blue-600">
+            Ocultar ganados
+        </label>
+        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+            <input type="checkbox" id="filterOnlyObligatory" onchange="renderScheduleCourseList(getFilteredSchedule())"
+                class="w-3.5 h-3.5 rounded text-blue-600">
+            Solo obligatorios
+        </label>
+    </div>
+
     <!-- Controles superiores -->
     <div class="flex items-center gap-3 flex-shrink-0 flex-wrap">
         <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex-1 min-w-64">
@@ -329,10 +347,10 @@
     </div>
 </div>
 
-    <script>
-    // ─────────────────────────────────────────────
+    <script charset="utf-8">
+    // ---------------------------------------------
     //  DATA
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     const pensumData = {
         "Antiguo":[
         { id: "0017", name: "Social Humanística 1", credits: 4, semester: 1, prereq: [], obligatory: true },
@@ -517,9 +535,9 @@
 let activePensumKey = "Antiguo";
 let courses = pensumData[activePensumKey];
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  STATE
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     let state = {};    // { courseId: true } — ganados
     let plan = [];     // [{ id, type, label, courses: [courseId, ...] }]
     let currentTab = 'pensum';
@@ -617,9 +635,9 @@ let courses = pensumData[activePensumKey];
         return hasPrereqs && hasMinCr;
     }
 
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 //  COURSE TREE VISUALIZER
-// ─────────────────────────────────────────────
+// ---------------------------------------------
 function openTreeModal(courseId) {
     const c = courses.find(x => x.id === courseId);
     if (!c) return;
@@ -711,9 +729,9 @@ function openTreeModal(courseId) {
         document.getElementById('treeModal').classList.add('hidden');
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  TABS
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -725,9 +743,9 @@ function openTreeModal(courseId) {
         if (tab === 'schedule') loadScheduleData();
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  PENSUM RENDER
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     function renderPensum() {
         const container = document.getElementById('pensumContainer');
         container.innerHTML = '';
@@ -843,9 +861,9 @@ function openTreeModal(courseId) {
         }
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  EXPORT / IMPORT
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     function exportJSON() {
         const data = {
             exportDate: new Date().toISOString(),
@@ -886,9 +904,9 @@ function openTreeModal(courseId) {
         event.target.value = '';
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  PLANNER
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     function updatePromedioDisplay() {
         document.getElementById('maxCredDisplay').innerText = getMaxCredits();
         if (currentTab === 'planner') renderPlanner();
@@ -1067,9 +1085,9 @@ function openTreeModal(courseId) {
         if (p) { p.label = newLabel; saveState(); }
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  MODAL
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     function openModal(periodId) {
         modalPeriodId = periodId;
         const period = plan.find(p => p.id === periodId);
@@ -1157,9 +1175,6 @@ function openTreeModal(courseId) {
     // Click outside modal to close
     document.getElementById('addCourseModal').addEventListener('click', closeModal);
 
-    // ─────────────────────────────────────────────
-    //  SCANNER (sin IA — PDF.js + fuzzy matching)
-    // ─────────────────────────────────────────────
     let scanFile = null;
 
     // Load PDF.js lazily
@@ -1246,7 +1261,7 @@ function openTreeModal(courseId) {
             const arrayBuffer = await scanFile.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-            // ── Reconstruct rows using Y coordinate ──────────────
+            // -- Reconstruct rows using Y coordinate --------------
             // Each PDF item has transform[4]=x, transform[5]=y
             // Items on the same row share a similar Y value
             let allItems = [];
@@ -1398,7 +1413,7 @@ function openTreeModal(courseId) {
             html += `<div class="px-5 py-4 flex gap-3">
                 <button onclick="openGradesFromScan()"
                     class="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors">
-                    📊 Ver notas y aplicar
+                    Ver notas y aplicar
                 </button>
                 <button onclick="applySelectedCourses()"
                     class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
@@ -1471,9 +1486,9 @@ function openTreeModal(courseId) {
         if (tab === 'planner') renderPlanner();
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  GRADES MODAL
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     let _gradesData = []; // [{ id, name, credits, grade }]
 
     function openGradesModal(scanResults) {
@@ -1618,52 +1633,302 @@ const DAY_MAP = { 'LU': 1, 'MA': 2, 'MI': 3, 'JU': 4, 'VI': 5, 'SA': 6, 'DO': 0 
 const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const DAY_KEYS = [1, 2, 3, 4, 5, 6];
 
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_pM38_nDt_QB40i6UdIsz0RQ-Hc3D9LHgIiPrDfEtE1Z8FNpkQYd75b6TiFSZ0ojU/exec';
+let activePeriodo = 'vacaciones1';
+
+async function changePeriodo(key) {
+    activePeriodo = key;
+    scheduleLoaded = false;
+    scheduleData = [];
+    selectedSections = [];
+
+    // Limpiar UI inmediatamente
+    document.getElementById('scheduleCourseList').innerHTML =
+        '<div class="p-6 text-center text-slate-400 text-xs">Cargando periodo...</div>';
+    document.getElementById('scheduleLoadStatus').textContent = 'Cambiando periodo...';
+    renderWeekCalendar();
+    renderSelectedCards();
+
+    await loadScheduleData();
+}
+
+function getFilteredSchedule() {
+    const q = document.getElementById('scheduleSearch').value.toLowerCase();
+    const hideWon = document.getElementById('filterHideWon').checked;
+    const onlyOblig = document.getElementById('filterOnlyObligatory').checked;
+
+    return scheduleData.filter(c => {
+        // Filtro de búsqueda
+        if (q && !c.name.toLowerCase().includes(q) && !c.id.includes(q)) return false;
+        // Ocultar ganados
+        if (hideWon && state[c.id]) return false;
+        // Solo obligatorios
+        if (onlyOblig) {
+            const courseInfo = courses.find(x => x.id === c.id);
+            if (!courseInfo || !courseInfo.obligatory) return false;
+        }
+        return true;
+    });
+}
+
 async function loadScheduleData() {
     if (scheduleLoaded) return;
-    document.getElementById('scheduleLoadStatus').textContent = 'Cargando desde servidor...';
+    document.getElementById('scheduleLoadStatus').textContent = 'Cargando horarios...';
     try {
-        const res = await fetch('https://usuarios.ingenieria.usac.edu.gt/horarios/vacaciones/1');
-        console.log(res);
-        const html = await res.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const rows = doc.querySelectorAll('table tr');
-        const raw = [];
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 8) return;
-            const nameCell = cells[0].textContent.trim();
-            const match = nameCell.match(/^(\d+)\s+(.+)$/);
-            if (!match) return;
-            raw.push({
-                id: match[1],
-                name: match[2],
-                section: cells[1].textContent.trim(),
-                modality: cells[2].textContent.trim(),
-                building: cells[3].textContent.trim(),
-                room: cells[4].textContent.trim(),
-                start: cells[5].textContent.trim(),
-                end: cells[6].textContent.trim(),
-                days: cells[7].textContent.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined),
-                teacher: cells[8].textContent.trim(),
-                aux: cells[9].textContent.trim(),
+        const res = await fetch(`${APPS_SCRIPT_URL}?periodo=${activePeriodo}`);
+        const raw = await res.json();
+
+        if (raw.error) throw new Error(raw.error);
+
+        const grouped = {};
+        raw.forEach(r => {
+            if (!r.ID || !r.Seccion) return;
+            const key = r.ID + '_' + r.Seccion;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    id: String(r.ID).padStart(4,'0'),
+                    name: r.Nombre,
+                    section: r.Seccion,
+                    building: r.Edificio,
+                    room: r.Salon,
+                    teacher: r.Catedratico,
+                    slots: []
+                };
+            }
+            grouped[key].slots.push({
+                start: r.Inicio,
+                end: r.Final,
+                days: r.Dias.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined)
             });
         });
 
-        // Group by course+section (a section may have multiple time slots)
-        const grouped = {};
-        raw.forEach(r => {
-            const key = r.id + '_' + r.section;
-            if (!grouped[key]) grouped[key] = { ...r, slots: [] };
-            grouped[key].slots.push({ start: r.start, end: r.end, days: r.days });
-        });
         scheduleData = Object.values(grouped);
         scheduleLoaded = true;
-        document.getElementById('scheduleLoadStatus').textContent = `${scheduleData.length} secciones disponibles`;
-        renderScheduleCourseList(scheduleData);
-    } catch (e) {
-        document.getElementById('scheduleLoadStatus').textContent = 'Error al cargar. Verifica tu conexión.';
+        document.getElementById('scheduleLoadStatus').textContent =
+            `${scheduleData.length} secciones · ${scheduleData.filter(c => state[c.id]).length} ya ganados`;
+        renderScheduleCourseList(getFilteredSchedule());
+    } catch(e) {
+        console.error(e);
+        document.getElementById('scheduleLoadStatus').textContent = 'Error: ' + e.message;
     }
+}
+
+function filterScheduleCourses(query) {
+    renderScheduleCourseList(getFilteredSchedule());
+}
+
+function renderScheduleCourseList(list) {
+    const container = document.getElementById('scheduleCourseList');
+    if (!list.length) {
+        container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Sin resultados</div>';
+        return;
+    }
+
+    // Agrupar por curso (mismo ID puede tener varias secciones)
+    const byId = {};
+    list.forEach(c => {
+        if (!byId[c.id]) byId[c.id] = { id: c.id, name: c.name, sections: [] };
+        byId[c.id].sections.push(c);
+    });
+
+    const courseInfo = (id) => courses.find(x => x.id === id);
+
+    container.innerHTML = Object.values(byId).map(course => {
+        const info = courseInfo(course.id);
+        const won = !!state[course.id];
+        return `<div class="px-3 py-2 hover:bg-slate-50 transition-colors ${won ? 'opacity-60' : ''}">
+            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                <span class="text-[10px] mono text-slate-400 font-bold">#${course.id}</span>
+                <span class="text-xs font-semibold ${won ? 'line-through text-slate-400' : 'text-slate-800'} leading-tight">${course.name}</span>
+                ${info?.obligatory ? '<span class="obligatory-badge">★ Oblig.</span>' : ''}
+                ${won ? '<span class="text-[9px] text-green-600 font-bold">✓ Ganado</span>' : ''}
+            </div>
+            <div class="flex flex-wrap gap-1">
+            ${course.sections.map(sec => {
+            const isSelected = !!selectedSections.find(s => s.courseId === sec.id && s.section === sec.section);
+            const slotLines = sec.slots.map(sl => `<span class="inline-flex items-center gap-1"><span class="font-mono">${sl.start}–${sl.end}</span><span class="text-slate-400">${sl.days.join(' ')}</span></span>`).join('<br>');
+            const isVirtual = sec.building === 'MEET';
+            return `<div class="mt-1 rounded-lg border transition-all overflow-hidden
+                ${isSelected ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'}">
+                <button onclick="toggleSection('${sec.id}','${sec.section}')"
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 text-left">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold ${isSelected ? 'text-blue-700' : 'text-slate-700'}">Sec. ${sec.section}</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${isVirtual ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-500'}">${isVirtual ? '🌐 Virtual' : '🏫 ' + sec.building}</span>
+                    </div>
+                    <span class="text-[10px] font-bold ${isSelected ? 'text-blue-600' : 'text-slate-400'}">${isSelected ? '✓ Agregado' : '+ Agregar'}</span>
+                </button>
+                ${isSelected ? `<div class="px-2.5 pb-2 space-y-1 border-t border-blue-100">
+                    <div class="flex flex-col gap-0.5 pt-1">${slotLines}</div>
+                    <div class="text-[10px] text-slate-500 truncate" title="${sec.teacher}">👤 ${sec.teacher}</div>
+                    ${sec.room && sec.room !== 'VIRTUAL' ? `<div class="text-[10px] text-slate-400">🚪 ${sec.room}</div>` : ''}
+                </div>` : `<div class="px-2.5 pb-1.5">
+                    <div class="text-[10px] text-slate-400 flex flex-col gap-0.5">${slotLines}</div>
+                    <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${sec.teacher}">👤 ${sec.teacher}</div>
+                </div>`}
+            </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleSection(courseId, section) {
+    const existing = selectedSections.findIndex(s => s.courseId === courseId && s.section === section);
+    if (existing >= 0) {
+        selectedSections.splice(existing, 1);
+    } else {
+        // Remover otra sección del mismo curso si ya hay una seleccionada
+        const sameIdx = selectedSections.findIndex(s => s.courseId === courseId);
+        if (sameIdx >= 0) selectedSections.splice(sameIdx, 1);
+
+        const data = scheduleData.find(s => s.id === courseId && s.section === section);
+        if (!data) return;
+        const color = SCHEDULE_COLORS[selectedSections.length % SCHEDULE_COLORS.length];
+        selectedSections.push({ courseId, section, ...data, color });
+    }
+    renderScheduleCourseList(getFilteredSchedule());
+    renderWeekCalendar();
+    renderSelectedCards();
+}
+
+function renderSelectedCards() {
+    const container = document.getElementById('scheduleSelectedCards');
+    if (!selectedSections.length) { container.innerHTML = ''; return; }
+    container.innerHTML = selectedSections.map(s => `
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-sm flex-shrink-0"
+            style="background:${s.color.bg}; border-color:${s.color.border}; color:${s.color.text}">
+            <span>${s.name} · Sec. ${s.section}</span>
+            <button onclick="toggleSection('${s.courseId}','${s.section}')"
+                class="text-base leading-none opacity-60 hover:opacity-100 ml-1">×</button>
+        </div>
+    `).join('');
+}
+
+function renderWeekCalendar() {
+    const container = document.getElementById('weekCalendar');
+    const hours = [];
+    for (let h = 7; h <= 21; h++) hours.push(h);
+    const SLOT_H = 36;
+
+    let html = `<div style="display:grid; grid-template-columns: 44px repeat(6,1fr); min-width:600px;">`;
+
+    // Header
+    html += `<div class="cal-header-cell" style="border-right:1px solid #e2e8f0;"></div>`;
+    DAY_LABELS.forEach(d => {
+        html += `<div class="cal-header-cell">${d}</div>`;
+    });
+
+    // Filas de horas
+    hours.forEach(h => {
+        html += `<div class="cal-time-cell" style="height:${SLOT_H}px; line-height:${SLOT_H}px; border-top:1px solid #f1f5f9;">${h}:00</div>`;
+        DAY_KEYS.forEach(d => {
+            html += `<div class="cal-day-cell" style="height:${SLOT_H}px; border-top:1px solid #f1f5f9; position:relative;" data-day="${d}" data-hour="${h}"></div>`;
+        });
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    // Colocar bloques de cursos
+    selectedSections.forEach(sec => {
+        sec.slots.forEach(slot => {
+            const [startH, startM] = slot.start.split(':').map(Number);
+            const [endH, endM] = slot.end.split(':').map(Number);
+            const height = ((endH - startH) + (endM - startM) / 60) * SLOT_H;
+
+            slot.days.forEach(dayCode => {
+                const dayNum = DAY_MAP[dayCode];
+                if (!DAY_KEYS.includes(dayNum)) return;
+
+                const cell = container.querySelector(`[data-day="${dayNum}"][data-hour="${startH}"]`);
+                if (!cell) return;
+
+                const block = document.createElement('div');
+                block.className = 'schedule-block';
+                block.style.cssText = `
+                    position: absolute;
+                    top: ${(startM / 60) * SLOT_H}px;
+                    left: 2px; right: 2px;
+                    height: ${height - 2}px;
+                    background: ${sec.color.bg};
+                    border-left: 3px solid ${sec.color.border};
+                    color: ${sec.color.text};
+                    z-index: 2;
+                `;
+                block.title = `${sec.name} · Sec. ${sec.section}\n${slot.start}-${slot.end}\n${sec.teacher}`;
+                block.innerHTML = '<div style="font-weight:700">' + sec.id + ' · ' + sec.section + '</div>'
+                + '<div style="opacity:0.8">' + slot.start + '-' + slot.end + '</div>'
+                + (height > 45 ? '<div style="opacity:0.65;font-size:9px">' + sec.teacher.split(' ').slice(0,2).join(' ') + '</div>' : '');
+                cell.appendChild(block);
+            });
+        });
+    });
+}
+
+function clearSchedule() {
+    selectedSections = [];
+    renderScheduleCourseList(getFilteredSchedule());
+    renderWeekCalendar();
+    renderSelectedCards();
+}
+
+function downloadSchedulePDF() {
+    if (!selectedSections.length) {
+        alert('Agrega al menos un curso al horario antes de descargar.');
+        return;
+    }
+
+    const hours = [];
+    for (let h = 7; h <= 21; h++) hours.push(h);
+    const SLOT_H = 40;
+
+    let tableRows = '';
+    hours.forEach(h => {
+        let rowCells = `<td style="font-size:10px;color:#94a3b8;padding:0 6px;text-align:right;border-right:1px solid #e2e8f0;width:44px;height:${SLOT_H}px;vertical-align:top;font-family:monospace">${h}:00</td>`;
+        DAY_KEYS.forEach(d => {
+            const dayCode = Object.keys(DAY_MAP).find(k => DAY_MAP[k] === d);
+            const blocks = [];
+            selectedSections.forEach(sec => {
+                sec.slots.forEach(slot => {
+                    const [sh] = slot.start.split(':').map(Number);
+                    if (sh !== h) return;
+                    if (!slot.days.includes(dayCode)) return;
+                    blocks.push(`<div style="background:${sec.color.bg};border-left:3px solid ${sec.color.border};color:${sec.color.text};border-radius:4px;padding:2px 4px;font-size:9px;margin-bottom:2px">
+                        <b>${sec.id} Sec.${sec.section}</b><br>${slot.start}-${slot.end}<br>${sec.teacher.split(' ').slice(0,3).join(' ')}
+                    </div>`);
+                });
+            });
+            rowCells += `<td style="border-right:1px solid #f1f5f9;border-top:1px solid #f1f5f9;vertical-align:top;padding:2px;">${blocks.join('')}</td>`;
+        });
+        tableRows += `<tr>${rowCells}</tr>`;
+    });
+
+    const cardsHTML = selectedSections.map(s => `
+        <div style="display:inline-flex;flex-direction:column;gap:2px;padding:6px 12px;border-radius:8px;border:1px solid ${s.color.border};background:${s.color.bg};color:${s.color.text};font-size:11px;font-weight:600;margin:3px;vertical-align:top">
+            <span><b>${s.name}</b> · Sec. ${s.section}</span>
+            <span style="opacity:0.7;font-weight:400">${s.slots.map(sl=>sl.start+'-'+sl.end+' '+sl.days.join(' ')).join(' / ')}</span>
+            <span style="opacity:0.7;font-weight:400">${s.teacher}</span>
+            <span style="opacity:0.7;font-weight:400">${s.building === 'MEET' ? 'Virtual' : s.building+' '+s.room}</span>
+        </div>
+    `).join('');
+
+    const win = window.open('', '_blank');
+    const html = '<!DOCTYPE html><html><head><title>Horario USAC Ingeniería</title>'
+    + '<style>body{font-family:sans-serif;padding:20px;} table{border-collapse:collapse;width:100%;} @media print{.no-print{display:none}}</style>'
+    + '</head><body>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    + '<h2 style="margin:0;font-size:16px">Horario - Facultad de Ingenier\u00eda USAC</h2>'
+    + '<button class="no-print" onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold">Imprimir / Guardar PDF</button>'
+    + '</div>'
+    + '<div style="margin-bottom:16px">' + cardsHTML + '</div>'
+    + '<table><thead><tr>'
+    + '<th style="width:44px;border-right:1px solid #e2e8f0"></th>'
+    + DAY_LABELS.map(d => '<th style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;border-right:1px solid #e2e8f0;padding:8px;text-align:center">' + d + '</th>').join('')
+    + '</tr></thead><tbody>' + tableRows + '</tbody></table>'
+    + '</body></html>';
+
+    win.document.write(html);
 }
 
 
@@ -1709,9 +1974,9 @@ async function loadScheduleData() {
             </div>`;
     }
 
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     //  INIT
-    // ─────────────────────────────────────────────
+    // ---------------------------------------------
     document.getElementById('filterObligatory').addEventListener('change', renderPensum);
     document.getElementById('gradesModal').addEventListener('click', function(e) {
         if (e.target === this) closeGradesModal();
