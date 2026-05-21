@@ -1692,6 +1692,7 @@ async function loadScheduleData() {
                     building: r.Edificio,
                     room: r.Salon,
                     teacher: r.Catedratico,
+                    aux: r.Auxiliar,
                     slots: []
                 };
             }
@@ -1703,6 +1704,7 @@ async function loadScheduleData() {
         });
 
         scheduleData = Object.values(grouped);
+
         scheduleLoaded = true;
         document.getElementById('scheduleLoadStatus').textContent =
             `${scheduleData.length} secciones · ${scheduleData.filter(c => state[c.id]).length} ya ganados`;
@@ -1746,7 +1748,13 @@ function renderScheduleCourseList(list) {
             <div class="flex flex-wrap gap-1">
             ${course.sections.map(sec => {
             const isSelected = !!selectedSections.find(s => s.courseId === sec.id && s.section === sec.section);
-            const slotLines = sec.slots.map(sl => `<span class="inline-flex items-center gap-1"><span class="font-mono">${sl.start}–${sl.end}</span><span class="text-slate-400">${sl.days.join(' ')}</span></span>`).join('<br>');
+            const DAY_FULL = { LU:'Lun', MA:'Mar', MI:'Mié', JU:'Jue', VI:'Vie', SA:'Sáb', DO:'Dom' };
+            const slotLines = sec.slots.map(sl =>
+                `<span class="inline-flex items-center gap-1">
+                    <span class="font-mono font-bold">${sl.start}–${sl.end}</span>
+                    <span class="text-slate-400">${sl.days.map(d => DAY_FULL[d] || d).join(', ')}</span>
+                </span>`
+            ).join('<br>');
             const isVirtual = sec.building === 'MEET';
             return `<div class="mt-1 rounded-lg border transition-all overflow-hidden
                 ${isSelected ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'}">
@@ -1761,10 +1769,12 @@ function renderScheduleCourseList(list) {
                 ${isSelected ? `<div class="px-2.5 pb-2 space-y-1 border-t border-blue-100">
                     <div class="flex flex-col gap-0.5 pt-1">${slotLines}</div>
                     <div class="text-[10px] text-slate-500 truncate" title="${sec.teacher}">👤 ${sec.teacher}</div>
+                    <div class="text-[10px] text-slate-500 truncate"  title="${sec.aux}">👤 ${sec.aux}</div>
                     ${sec.room && sec.room !== 'VIRTUAL' ? `<div class="text-[10px] text-slate-400">🚪 ${sec.room}</div>` : ''}
                 </div>` : `<div class="px-2.5 pb-1.5">
                     <div class="text-[10px] text-slate-400 flex flex-col gap-0.5">${slotLines}</div>
                     <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${sec.teacher}">👤 ${sec.teacher}</div>
+                    <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${sec.aux}">👤 ${sec.aux}</div>
                 </div>`}
             </div>`;
         }).join('')}
