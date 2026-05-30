@@ -192,75 +192,82 @@
     </div>
 
     <!-- TAB HORARIO -->
-<div id="tab-schedule" class="tab-content hidden h-full flex flex-col gap-4 overflow-hidden">
+<div id="tab-schedule" class="tab-content hidden h-full flex flex-col overflow-hidden gap-0">
 
-    <!-- Selector de periodo -->
-    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
-        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Periodo</span>
-        <select id="schedulePeriodo" onchange="changePeriodo(this.value)"
-            class="bg-transparent text-sm font-bold text-slate-800 focus:outline-none cursor-pointer">
-            <option value="semestre1">Primer Semestre</option>
-            <option value="vacaciones1" selected>Vacaciones Junio</option>
-            <option value="semestre2">Segundo Semestre</option>
-            <option value="vacaciones2">Vacaciones Diciembre</option>
-        </select>
-    </div>
-
-    <!-- Filtros -->
-    <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
-        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mostrar</span>
-        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-            <input type="checkbox" id="filterHideWon" checked onchange="renderScheduleCourseList(getFilteredSchedule())"
-                class="w-3.5 h-3.5 rounded text-blue-600">
-            Ocultar ganados
-        </label>
-        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-            <input type="checkbox" id="filterOnlyObligatory" onchange="renderScheduleCourseList(getFilteredSchedule())"
-                class="w-3.5 h-3.5 rounded text-blue-600">
-            Solo obligatorios
-        </label>
-    </div>
-
-    <!-- Controles superiores -->
-    <div class="flex items-center gap-3 flex-shrink-0 flex-wrap">
-        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex-1 min-w-64">
-            <span class="text-slate-400">🔍</span>
-            <input id="scheduleSearch" type="text" placeholder="Buscar curso por nombre o código..."
-                class="flex-1 text-sm outline-none bg-transparent text-slate-700"
+    <!-- Top bar -->
+    <div class="flex items-center gap-3 px-1 pb-3 flex-shrink-0 flex-wrap">
+        <!-- Periodo selector -->
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Periodo</span>
+            <select id="schedulePeriodo" onchange="changePeriodo(this.value)"
+                class="bg-transparent text-sm font-semibold text-slate-800 focus:outline-none cursor-pointer">
+                <option value="semestre1">Primer Semestre</option>
+                <option value="vacaciones1" selected>Vacaciones de Junio</option>
+                <option value="semestre2">Segundo Semestre</option>
+                <option value="vacaciones2">Vacaciones de Diciembre</option>
+            </select>
+        </div>
+        <!-- Search -->
+        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex-1 min-w-48">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input id="scheduleSearch" type="text" placeholder="Buscar curso, código, catedrático..."
+                class="flex-1 text-sm outline-none bg-transparent text-slate-700 placeholder-slate-300"
                 oninput="filterScheduleCourses(this.value)">
         </div>
+        <!-- Filters -->
+        <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="filterHideWon" checked onchange="renderScheduleCourseList(getFilteredSchedule())"
+                    class="w-3.5 h-3.5 rounded text-blue-600 accent-blue-600">
+                Ocultar ganados
+            </label>
+            <div class="w-px h-4 bg-slate-200"></div>
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="filterOnlyObligatory" onchange="renderScheduleCourseList(getFilteredSchedule())"
+                    class="w-3.5 h-3.5 rounded text-blue-600 accent-blue-600">
+                Solo obligatorios
+            </label>
+        </div>
+        <!-- Actions -->
         <button onclick="clearSchedule()"
-            class="px-4 py-2 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors">
-            🗑 Limpiar horario
+            class="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-500 rounded-xl text-xs font-semibold hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Limpiar
         </button>
         <button onclick="downloadSchedulePDF()"
-            class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
-            ⬇ Descargar PDF
+            class="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Descargar PDF
         </button>
     </div>
 
-    <div class="flex gap-4 flex-1 overflow-hidden min-h-0">
+    <!-- 3-panel layout -->
+    <div class="flex gap-3 flex-1 overflow-hidden min-h-0">
 
-        <!-- Panel izquierdo: lista de cursos disponibles -->
-        <div class="w-80 flex-shrink-0 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="px-4 py-3 border-b border-slate-100 flex-shrink-0">
-                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cursos disponibles</div>
-                <div id="scheduleLoadStatus" class="text-[10px] text-slate-400 mt-1">Cargando horarios...</div>
+        <!-- LEFT: Course list -->
+        <div class="w-72 flex-shrink-0 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex-shrink-0 bg-slate-50">
+                <div id="scheduleLoadStatus" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cargando...</div>
             </div>
-            <div id="scheduleCourseList" class="overflow-y-auto flex-1 divide-y divide-slate-50 text-sm"></div>
+            <div id="scheduleCourseList" class="overflow-y-auto flex-1 text-sm"></div>
         </div>
 
-        <!-- Panel derecho: calendario semanal -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- CENTER: Selected courses -->
+        <div class="w-64 flex-shrink-0 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex-shrink-0 bg-slate-50">
+                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mi horario</div>
+                <div id="scheduleCourseCount" class="text-[10px] text-slate-400 mt-0.5">0 cursos</div>
+            </div>
+            <div id="scheduleSelectedCards" class="overflow-y-auto flex-1 p-3 flex flex-col gap-2"></div>
+        </div>
 
-            <!-- Resumen de cursos seleccionados -->
-            <div id="scheduleSelectedCards" class="flex gap-2 flex-wrap mb-3 flex-shrink-0"></div>
-
-            <!-- Calendario -->
-            <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-auto">
-                <div id="weekCalendar" class="min-w-[600px]"></div>
+        <!-- RIGHT: Calendar -->
+        <div class="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-w-0">
+            <div class="overflow-auto flex-1">
+                <div id="weekCalendar" class="min-w-[500px] h-full"></div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -347,10 +354,10 @@
     </div>
 </div>
 
-    <script charset="utf-8">
-    // ---------------------------------------------
+    <script>
+    // ─────────────────────────────────────────────
     //  DATA
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     const pensumData = {
         "Antiguo":[
         { id: "0017", name: "Social Humanística 1", credits: 4, semester: 1, prereq: [], obligatory: true },
@@ -535,9 +542,9 @@
 let activePensumKey = "Antiguo";
 let courses = pensumData[activePensumKey];
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  STATE
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     let state = {};    // { courseId: true } — ganados
     let plan = [];     // [{ id, type, label, courses: [courseId, ...] }]
     let currentTab = 'pensum';
@@ -579,7 +586,7 @@ let courses = pensumData[activePensumKey];
         renderPensum();
         if (currentTab === 'planner') renderPlanner();
         // Actualiza el contador de créditos totales (cambia según pensum)
-        const pensumTotals = { 'antiguo': 250, '2022': 300, '2025': 300 };
+        const pensumTotals = { 'Antiguo': 250, '2022': 300, '2025': 300 };
         document.getElementById('totalCrMax').innerText = pensumTotals[activePensumKey] || 250;
     }
 
@@ -635,9 +642,9 @@ let courses = pensumData[activePensumKey];
         return hasPrereqs && hasMinCr;
     }
 
-// ---------------------------------------------
+// ─────────────────────────────────────────────
 //  COURSE TREE VISUALIZER
-// ---------------------------------------------
+// ─────────────────────────────────────────────
 function openTreeModal(courseId) {
     const c = courses.find(x => x.id === courseId);
     if (!c) return;
@@ -729,9 +736,9 @@ function openTreeModal(courseId) {
         document.getElementById('treeModal').classList.add('hidden');
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  TABS
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     function switchTab(tab) {
         currentTab = tab;
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -743,9 +750,9 @@ function openTreeModal(courseId) {
         if (tab === 'schedule') loadScheduleData();
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  PENSUM RENDER
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     function renderPensum() {
         const container = document.getElementById('pensumContainer');
         container.innerHTML = '';
@@ -841,16 +848,10 @@ function openTreeModal(courseId) {
         document.querySelectorAll('.course-card').forEach(el => el.classList.remove('prerequisite-highlight'));
     }
     function updateUI() {
-    const pensumTotals = { 'antiguo': 250, '2022': 300, '2025': 300 };
+    const pensumTotals = { 'Antiguo': 250, '2022': 300, '2025': 300 };
     document.getElementById('totalCrMax').innerText = pensumTotals[activePensumKey] || 250;
-
     const currentCredits = courses.reduce((acc, c) => state[c.id] ? acc + c.credits : acc, 0);
     document.getElementById('totalCredits').innerText = currentCredits;
-
-    const wonCount = courses.filter(c => state[c.id]).length;
-    const totalCount = courses.length;
-    document.getElementById('wonCourses').innerText = wonCount;
-    document.getElementById('totalCourses').innerText = totalCount;
 }
     function resetPensum() {
         if (confirm('¿Seguro que quieres borrar TODO el progreso y el plan?')) {
@@ -861,52 +862,59 @@ function openTreeModal(courseId) {
         }
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  EXPORT / IMPORT
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     function exportJSON() {
-        const data = {
-            exportDate: new Date().toISOString(),
-            version: 2,
-            state,
-            plan,
-            promedio: parseFloat(document.getElementById('promedio').value) || 0
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pensum_usac_progreso.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    const data = {
+        exportDate: new Date().toISOString(),
+        version: 2,
+        pensumKey: activePensumKey,
+        state,
+        plan,
+        promedio: parseFloat(document.getElementById('promedio').value) || 0
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pensum_usac_progreso.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-    function importJSON(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.state) state = data.state;
-                if (data.plan) plan = data.plan;
-                if (data.promedio) document.getElementById('promedio').value = data.promedio;
-                saveState();
-                renderPensum();
-                updatePromedioDisplay();
-                if (currentTab === 'planner') renderPlanner();
-                alert('Progreso importado correctamente');
-            } catch(err) {
-                alert('Archivo JSON inválido');
+function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            // Restaurar pensum si existe
+            if (data.pensumKey && pensumData[data.pensumKey]) {
+                activePensumKey = data.pensumKey;
+                courses = pensumData[activePensumKey];
+                document.getElementById('pensumSelector').value = activePensumKey;
             }
-        };
-        reader.readAsText(file);
-        event.target.value = '';
-    }
+            if (data.state) state = data.state;
+            if (data.plan)  plan  = data.plan;
+            if (data.promedio) document.getElementById('promedio').value = data.promedio;
+            saveState();
+            renderPensum();
+            updatePromedioDisplay();
+            if (currentTab === 'planner') renderPlanner();
+            alert('Progreso importado correctamente');
+        } catch(err) {
+            alert('Archivo JSON inválido');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  PLANNER
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     function updatePromedioDisplay() {
         document.getElementById('maxCredDisplay').innerText = getMaxCredits();
         if (currentTab === 'planner') renderPlanner();
@@ -1085,9 +1093,9 @@ function openTreeModal(courseId) {
         if (p) { p.label = newLabel; saveState(); }
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  MODAL
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     function openModal(periodId) {
         modalPeriodId = periodId;
         const period = plan.find(p => p.id === periodId);
@@ -1261,7 +1269,7 @@ function openTreeModal(courseId) {
             const arrayBuffer = await scanFile.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-            // -- Reconstruct rows using Y coordinate --------------
+            // ── Reconstruct rows using Y coordinate ──────────────
             // Each PDF item has transform[4]=x, transform[5]=y
             // Items on the same row share a similar Y value
             let allItems = [];
@@ -1304,42 +1312,39 @@ function openTreeModal(courseId) {
 
             const flatText = rowStrings.join(' ');
 
-            const ENTRY_RE = /\b(\d{4})\b(.{0,120}?)\b(\d{4}-\d{2})\b\s*([\d.]+|Aprobado)/g;
+        // Estrategia: buscar el código de 4 dígitos directamente
+        const seenIds = new Set();
+        const found = [];
 
-            const found = [];
-            const seenIds = new Set();
-            let match;
-            while ((match = ENTRY_RE.exec(flatText)) !== null) {
-                const code = match[1].padStart(4, '0');
-                const gradeRaw = match[4];
-                const grade = gradeRaw === 'Aprobado' ? null : parseFloat(gradeRaw);
+        courses.forEach(course => {
+            // Buscar el ID del curso en el texto
+            const idRe = new RegExp('\\b' + course.id + '\\b');
+            if (!idRe.test(flatText)) return;
 
-                if (grade !== null && grade < 61) continue;
-                if (seenIds.has(code)) continue;
+            // Buscar nota cerca del ID (dentro de 200 chars)
+            const idIdx = flatText.search(idRe);
+            const context = flatText.substring(idIdx, idIdx + 200);
+            const gradeMatch = context.match(/\b(\d{2,3}(?:\.\d{1,2})?)\b/g);
 
-                const course = courses.find(c => c.id === code);
-                if (!course) continue;
+            let grade = null;
+            if (gradeMatch) {
+                // Filtrar valores que parecen notas (61-100)
+                const validGrade = gradeMatch.map(Number).find(n => n >= 61 && n <= 100);
+                if (validGrade) grade = validGrade;
+            }
 
-                seenIds.add(code);
+            if (!seenIds.has(course.id)) {
+                seenIds.add(course.id);
                 found.push({
-                    id: code,
+                    id: course.id,
                     name: course.name,
-                    grade: gradeRaw === 'Aprobado' ? 'Aprobado' : grade.toFixed(2),
-                    rawLine: match[0].trim(),
-                    confidence: 'high',
-                    score: 1.0
+                    grade: grade ? grade.toFixed(2) : null,
+                    rawLine: context.substring(0, 80),
+                    confidence: grade ? 'high' : 'low',
+                    score: grade ? 1.0 : 0.5
                 });
             }
-
-            if (found.length === 0) {
-                courses.forEach(c => {
-                    const re = new RegExp('\\b' + c.id + '\\b');
-                    if (re.test(flatText) && !seenIds.has(c.id)) {
-                        seenIds.add(c.id);
-                        found.push({ id: c.id, name: c.name, grade: null, rawLine: '', fallback: true, confidence: 'low', score: 0.5 });
-                    }
-                });
-            }
+        });
 
             showScanResult(found);
             document.getElementById('scanStatus').classList.add('hidden');
@@ -1413,7 +1418,7 @@ function openTreeModal(courseId) {
             html += `<div class="px-5 py-4 flex gap-3">
                 <button onclick="openGradesFromScan()"
                     class="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition-colors">
-                    Ver notas y aplicar
+                    📊 Ver notas y aplicar
                 </button>
                 <button onclick="applySelectedCourses()"
                     class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
@@ -1448,6 +1453,17 @@ function openTreeModal(courseId) {
                 applied++;
             }
         });
+        // Calcular promedio de las notas detectadas
+        const withGrades = found.filter(r => {
+            const cb = document.getElementById('scan_' + r.id);
+            return cb && cb.checked && r.grade && r.grade !== 'Aprobado';
+        });
+        if (withGrades.length > 0) {
+            const avg = withGrades.reduce((s, r) => s + parseFloat(r.grade), 0) / withGrades.length;
+            const rounded = Math.round(avg);
+            document.getElementById('promedio').value = rounded;
+            updatePromedioDisplay();
+        }
         saveState();
         renderPensum();
         document.getElementById('scanResult').innerHTML = `
@@ -1486,9 +1502,9 @@ function openTreeModal(courseId) {
         if (tab === 'planner') renderPlanner();
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  GRADES MODAL
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     let _gradesData = []; // [{ id, name, credits, grade }]
 
     function openGradesModal(scanResults) {
@@ -1630,6 +1646,7 @@ const SCHEDULE_COLORS = [
 ];
 
 const DAY_MAP = { 'LU': 1, 'MA': 2, 'MI': 3, 'JU': 4, 'VI': 5, 'SA': 6, 'DO': 0 };
+const DAY_FULL = { LU:'Lun', MA:'Mar', MI:'Mié', JU:'Jue', VI:'Vie', SA:'Sáb', DO:'Dom' };
 const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const DAY_KEYS = [1, 2, 3, 4, 5, 6];
 
@@ -1641,14 +1658,12 @@ async function changePeriodo(key) {
     scheduleLoaded = false;
     scheduleData = [];
     selectedSections = [];
-
-    // Limpiar UI inmediatamente
+    window._expandedCourse = null;
     document.getElementById('scheduleCourseList').innerHTML =
-        '<div class="p-6 text-center text-slate-400 text-xs">Cargando periodo...</div>';
+        '<div class="p-6 text-center text-slate-300 text-xs mt-8">Cargando periodo...</div>';
     document.getElementById('scheduleLoadStatus').textContent = 'Cambiando periodo...';
     renderWeekCalendar();
     renderSelectedCards();
-
     await loadScheduleData();
 }
 
@@ -1699,12 +1714,13 @@ async function loadScheduleData() {
             grouped[key].slots.push({
                 start: r.Inicio,
                 end: r.Final,
-                days: r.Dias.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined)
+                days: r.Dias.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined),
+                teacher: r.Catedratico,
+                aux: r.Auxiliar
             });
         });
 
         scheduleData = Object.values(grouped);
-
         scheduleLoaded = true;
         document.getElementById('scheduleLoadStatus').textContent =
             `${scheduleData.length} secciones · ${scheduleData.filter(c => state[c.id]).length} ya ganados`;
@@ -1722,65 +1738,78 @@ function filterScheduleCourses(query) {
 function renderScheduleCourseList(list) {
     const container = document.getElementById('scheduleCourseList');
     if (!list.length) {
-        container.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Sin resultados</div>';
+        container.innerHTML = '<div class="p-6 text-center text-slate-300 text-xs flex flex-col items-center gap-2 mt-8"><svg class="w-8 h-8 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Sin resultados</div>';
         return;
     }
-
-    // Agrupar por curso (mismo ID puede tener varias secciones)
     const byId = {};
     list.forEach(c => {
         if (!byId[c.id]) byId[c.id] = { id: c.id, name: c.name, sections: [] };
         byId[c.id].sections.push(c);
     });
-
     const courseInfo = (id) => courses.find(x => x.id === id);
-
     container.innerHTML = Object.values(byId).map(course => {
         const info = courseInfo(course.id);
         const won = !!state[course.id];
-        return `<div class="px-3 py-2 hover:bg-slate-50 transition-colors ${won ? 'opacity-60' : ''}">
-            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                <span class="text-[10px] mono text-slate-400 font-bold">#${course.id}</span>
-                <span class="text-xs font-semibold ${won ? 'line-through text-slate-400' : 'text-slate-800'} leading-tight">${course.name}</span>
-                ${info?.obligatory ? '<span class="obligatory-badge">★ Oblig.</span>' : ''}
-                ${won ? '<span class="text-[9px] text-green-600 font-bold">✓ Ganado</span>' : ''}
-            </div>
-            <div class="flex flex-wrap gap-1">
-            ${course.sections.map(sec => {
+        const hasSelected = course.sections.some(s => selectedSections.find(sel => sel.courseId === s.id && sel.section === s.section));
+        const isExpanded = hasSelected || (window._expandedCourse === course.id);
+        const sectionsHTML = course.sections.map(sec => {
             const isSelected = !!selectedSections.find(s => s.courseId === sec.id && s.section === sec.section);
-            const DAY_FULL = { LU:'Lun', MA:'Mar', MI:'Mié', JU:'Jue', VI:'Vie', SA:'Sáb', DO:'Dom' };
-            const slotLines = sec.slots.map(sl =>
-                `<span class="inline-flex items-center gap-1">
-                    <span class="font-mono font-bold">${sl.start}–${sl.end}</span>
-                    <span class="text-slate-400">${sl.days.map(d => DAY_FULL[d] || d).join(', ')}</span>
-                </span>`
-            ).join('<br>');
             const isVirtual = sec.building === 'MEET';
-            return `<div class="mt-1 rounded-lg border transition-all overflow-hidden
-                ${isSelected ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'}">
-                <button onclick="toggleSection('${sec.id}','${sec.section}')"
-                    class="w-full flex items-center justify-between px-2.5 py-1.5 text-left">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[11px] font-bold ${isSelected ? 'text-blue-700' : 'text-slate-700'}">Sec. ${sec.section}</span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${isVirtual ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-500'}">${isVirtual ? '🌐 Virtual' : '🏫 ' + sec.building}</span>
-                    </div>
-                    <span class="text-[10px] font-bold ${isSelected ? 'text-blue-600' : 'text-slate-400'}">${isSelected ? '✓ Agregado' : '+ Agregar'}</span>
-                </button>
-                ${isSelected ? `<div class="px-2.5 pb-2 space-y-1 border-t border-blue-100">
-                    <div class="flex flex-col gap-0.5 pt-1">${slotLines}</div>
-                    <div class="text-[10px] text-slate-500 truncate" title="${sec.teacher}">👤 ${sec.teacher}</div>
-                    <div class="text-[10px] text-slate-500 truncate"  title="${sec.aux}">👤 ${sec.aux}</div>
-                    ${sec.room && sec.room !== 'VIRTUAL' ? `<div class="text-[10px] text-slate-400">🚪 ${sec.room}</div>` : ''}
-                </div>` : `<div class="px-2.5 pb-1.5">
-                    <div class="text-[10px] text-slate-400 flex flex-col gap-0.5">${slotLines}</div>
-                    <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${sec.teacher}">👤 ${sec.teacher}</div>
-                    <div class="text-[10px] text-slate-400 truncate mt-0.5" title="${sec.aux}">👤 ${sec.aux}</div>
-                </div>`}
-            </div>`;
-        }).join('')}
-            </div>
-        </div>`;
+            const daysStr = sec.slots.map(sl => sl.days.map(d => DAY_FULL[d]||d).join(' · ')).join(' / ') || '—';
+            const timeStr = sec.slots.map(sl => sl.start + ' - ' + sl.end).join(' / ');
+            const sel = selectedSections.find(s => s.courseId === sec.id && s.section === sec.section);
+            return '<div class="px-4 py-3 border-t border-slate-100 ' + (isSelected ? 'bg-blue-50' : 'bg-white') + '">'
+                + '<div class="flex items-start justify-between gap-2 mb-2">'
+                + '<div><div class="text-[11px] font-black text-slate-700">Secci\u00f3n ' + sec.section + '</div>'
+                + '<div class="text-[10px] font-semibold mt-0.5 ' + (isVirtual ? 'text-purple-500' : 'text-slate-400') + '">'
+                + (isVirtual ? '\uD83C\uDF10 Virtual' : '\uD83C\uDFEB ' + sec.building + (sec.room && sec.room !== 'VIRTUAL' ? ' \u00b7 ' + sec.room : '')) + '</div></div>'
+                + '<button onclick="toggleSection(\'' + sec.id + '\',\'' + sec.section + '\')"'
+                + ' class="flex-shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors '
+                + (isSelected ? 'bg-blue-600 text-white hover:bg-red-500' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600') + '">'
+                + (isSelected ? '\u2713 Agregado' : '+ Agregar') + '</button></div>'
+                + '<div class="grid grid-cols-2 gap-x-4 gap-y-1.5">'
+                + '<div><div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Horario</div>'
+                + '<div class="text-[11px] font-semibold text-slate-700">' + timeStr + '</div></div>'
+                + '<div><div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">D\u00edas</div>'
+                + '<div class="text-[11px] font-semibold text-slate-700">' + daysStr + '</div></div>'
+                + '<div class="col-span-2">'
+                + sec.slots.map((sl, i) => {
+                    const label = sec.slots.length > 1 ? (i === 0 ? 'Clase magistral' : 'Laboratorio') : 'Catedrático';
+                    const auxLabel = sec.slots.length > 1 ? (i === 0 ? 'Auxiliar (clase)' : 'Auxiliar (lab)') : 'Auxiliar';
+                    return '<div class="mb-1.5 ' + (i > 0 ? 'pt-1.5 border-t border-slate-100' : '') + '">'
+                    + '<div class="text-[9px] font-bold ' + (i === 0 ? 'text-slate-400' : 'text-purple-400') + ' uppercase tracking-wider">' + label + '</div>'
+                    + '<div class="text-[11px] text-slate-600">' + (sl.teacher || sec.teacher) + '</div>'
+                    + '<div class="text-[10px] text-slate-400 mono">' + sl.start + ' - ' + sl.end + ' · ' + (sl.days.map(d => DAY_FULL[d]||d).join(', ') || '—') + '</div>'
+                    + ((sl.aux && sl.aux !== 'SIN AUXILIAR') ? '<div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">' + auxLabel + '</div><div class="text-[11px] text-slate-500">' + sl.aux + '</div>' : '')
+                        + '</div>';
+                }).join('')
+                + '</div>'
+                + '</div></div>';
+        }).join('');
+        return '<div class="border-b border-slate-100 last:border-0">'
+            + '<button onclick="toggleCourseExpand(\'' + course.id + '\')" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left">'
+            + '<div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-[9px] font-black mono '
+            + (hasSelected ? 'bg-blue-600 text-white' : won ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500') + '">' + course.id + '</div>'
+            + '<div class="flex-1 min-w-0">'
+            + '<div class="text-xs font-bold text-slate-800 leading-tight truncate">' + course.name + '</div>'
+            + '<div class="text-[10px] text-slate-400 mt-0.5">' + course.sections.length + ' secci\u00f3n' + (course.sections.length !== 1 ? 'es' : '')
+            + (info?.obligatory ? ' <span class="text-blue-500 font-semibold">\u00b7 Obligatorio</span>' : '')
+            + (won ? ' <span class="text-green-500 font-semibold">\u00b7 Ganado</span>' : '') + '</div></div>'
+            + '<svg class="w-4 h-4 text-slate-300 flex-shrink-0 transition-transform ' + (isExpanded ? 'rotate-180' : '') + '" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>'
+            + '</button>'
+            + '<div id="expand_' + course.id + '" class="' + (isExpanded ? '' : 'hidden') + '">' + sectionsHTML + '</div>'
+            + '</div>';
     }).join('');
+}
+
+function toggleCourseExpand(courseId) {
+    const wasExpanded = window._expandedCourse === courseId;
+    window._expandedCourse = wasExpanded ? null : courseId;
+    document.querySelectorAll('[id^="expand_"]').forEach(e => e.classList.add('hidden'));
+    if (!wasExpanded) {
+        const el = document.getElementById('expand_' + courseId);
+        if (el) el.classList.remove('hidden');
+    }
 }
 
 function toggleSection(courseId, section) {
@@ -1788,10 +1817,8 @@ function toggleSection(courseId, section) {
     if (existing >= 0) {
         selectedSections.splice(existing, 1);
     } else {
-        // Remover otra sección del mismo curso si ya hay una seleccionada
         const sameIdx = selectedSections.findIndex(s => s.courseId === courseId);
         if (sameIdx >= 0) selectedSections.splice(sameIdx, 1);
-
         const data = scheduleData.find(s => s.id === courseId && s.section === section);
         if (!data) return;
         const color = SCHEDULE_COLORS[selectedSections.length % SCHEDULE_COLORS.length];
@@ -1804,15 +1831,31 @@ function toggleSection(courseId, section) {
 
 function renderSelectedCards() {
     const container = document.getElementById('scheduleSelectedCards');
-    if (!selectedSections.length) { container.innerHTML = ''; return; }
-    container.innerHTML = selectedSections.map(s => `
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-sm flex-shrink-0"
-            style="background:${s.color.bg}; border-color:${s.color.border}; color:${s.color.text}">
-            <span>${s.name} · Sec. ${s.section}</span>
-            <button onclick="toggleSection('${s.courseId}','${s.section}')"
-                class="text-base leading-none opacity-60 hover:opacity-100 ml-1">×</button>
-        </div>
-    `).join('');
+    const countEl = document.getElementById('scheduleCourseCount');
+    if (countEl) countEl.textContent = selectedSections.length + ' curso' + (selectedSections.length !== 1 ? 's' : '');
+    if (!selectedSections.length) {
+        container.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-slate-200 text-xs gap-2 py-8">'
+            + '<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
+            + '<span class="text-center leading-relaxed">Agrega cursos<br>desde el panel</span></div>';
+        return;
+    }
+    container.innerHTML = selectedSections.map((s, idx) => {
+        const daysStr = s.slots ? s.slots.map(sl => sl.days.map(d => DAY_FULL[d]||d).join(' \u00b7 ')).join(' / ') : '';
+        const timeStr = s.slots ? s.slots.map(sl => sl.start + ' - ' + sl.end).join(' / ') : '';
+        return '<div class="rounded-xl border-l-4 p-3 bg-white shadow-sm flex-shrink-0" style="border-left-color:' + s.color.border + '; background:' + s.color.bg + '">'
+            + '<div class="flex items-start justify-between gap-1">'
+            + '<div class="flex-1 min-w-0">'
+            + '<div class="text-[11px] font-black truncate" style="color:' + s.color.text + '">' + s.name + '</div>'
+            + '<div class="text-[10px] font-bold opacity-70 mt-0.5" style="color:' + s.color.text + '">Secci\u00f3n ' + s.section + '</div>'
+            + '</div>'
+            + '<button onclick="toggleSection(\'' + s.courseId + '\',\'' + s.section + '\')" style="color:' + s.color.text + '" class="opacity-40 hover:opacity-100 text-lg leading-none flex-shrink-0">\u00d7</button>'
+            + '</div>'
+            + '<div class="mt-2 space-y-0.5">'
+            + '<div class="text-[10px] font-semibold opacity-80" style="color:' + s.color.text + '">' + timeStr + '</div>'
+            + '<div class="text-[10px] opacity-60" style="color:' + s.color.text + '">' + daysStr + '</div>'
+            + '</div>'
+            + '</div>';
+    }).join('');
 }
 
 function renderWeekCalendar() {
@@ -1928,7 +1971,7 @@ function downloadSchedulePDF() {
     + '<style>body{font-family:sans-serif;padding:20px;} table{border-collapse:collapse;width:100%;} @media print{.no-print{display:none}}</style>'
     + '</head><body>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-    + '<h2 style="margin:0;font-size:16px">Horario - Facultad de Ingenier\u00eda USAC</h2>'
+    + '<h2 style="margin:0;font-size:16px">Horario — Facultad de Ingeniería USAC</h2>'
     + '<button class="no-print" onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold">Imprimir / Guardar PDF</button>'
     + '</div>'
     + '<div style="margin-bottom:16px">' + cardsHTML + '</div>'
@@ -1984,9 +2027,9 @@ function downloadSchedulePDF() {
             </div>`;
     }
 
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     //  INIT
-    // ---------------------------------------------
+    // ─────────────────────────────────────────────
     document.getElementById('filterObligatory').addEventListener('change', renderPensum);
     document.getElementById('gradesModal').addEventListener('click', function(e) {
         if (e.target === this) closeGradesModal();
