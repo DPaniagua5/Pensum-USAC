@@ -1,4 +1,12 @@
 :root {
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-header: #ffffff;
+    --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-faint: #94a3b8;
     --won: #16a34a;
     --won-bg: #f0fdf4;
     --won-border: #86efac;
@@ -10,7 +18,28 @@
     --available: #f59e0b;
     --available-bg: #fffbeb;
     --available-border: #fcd34d;
+    --scrollbar: #cbd5e1;
 }
+
+html.dark {
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-header: #1e293b;
+    --border: #334155;
+    --border-subtle: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-faint: #475569;
+    --won-bg: #052e16;
+    --won-border: #166534;
+    --planned-bg: #0c1a3a;
+    --planned-border: #1e40af;
+    --locked-bg: #1e293b;
+    --available-bg: #1c1007;
+    --available-border: #92400e;
+    --scrollbar: #334155;
+}
+
 * { font-family: 'IBM Plex Sans', sans-serif; }
 code, .mono { font-family: 'IBM Plex Mono', monospace; }
 
@@ -104,3 +133,49 @@ code, .mono { font-family: 'IBM Plex Mono', monospace; }
 .cal-time-cell { font-size: 9px; color: #cbd5e1; font-family: 'IBM Plex Mono', monospace; padding: 0 6px; text-align: right; border-right: 1px solid #e2e8f0; white-space: nowrap; width: 44px; }
 .cal-day-cell { border-right: 1px solid #f1f5f9; position: relative; }
 .cal-row { border-top: 1px solid #f1f5f9; display: contents; }
+
+
+/* Dark mode app */
+html.dark body { background: var(--bg); color: var(--text); }
+html.dark header { background: var(--bg-header); border-color: var(--border); }
+html.dark .bg-white { background-color: var(--bg-card) !important; }
+html.dark .bg-slate-50 { background-color: #1e293b !important; }
+html.dark .bg-slate-100 { background-color: #334155 !important; }
+html.dark .border-slate-200 { border-color: var(--border) !important; }
+html.dark .border-slate-100 { border-color: #1e293b !important; }
+html.dark .text-slate-800 { color: #f1f5f9 !important; }
+html.dark .text-slate-700 { color: #e2e8f0 !important; }
+html.dark .text-slate-600 { color: #cbd5e1 !important; }
+html.dark .text-slate-500 { color: #94a3b8 !important; }
+html.dark .text-slate-400 { color: #64748b !important; }
+html.dark .text-slate-300 { color: #475569 !important; }
+html.dark .divide-slate-50 > * { border-color: #1e293b !important; }
+html.dark .divide-slate-100 > * { border-color: #334155 !important; }
+html.dark .course-card { border-color: var(--border) !important; }
+html.dark .plan-period { background: var(--bg-card); border-color: var(--border); }
+html.dark .plan-course-item { border-top-color: var(--border-subtle); }
+html.dark .plan-course-item:hover { background: #334155; }
+html.dark .cal-header-cell { background: #1e293b; border-color: var(--border); color: #475569; }
+html.dark .cal-time-cell { color: #475569; border-color: var(--border); }
+html.dark .cal-day-cell { border-color: #1e293b; }
+html.dark .grade-input { background: #1e293b; border-color: var(--border); color: #f1f5f9; }
+html.dark ::-webkit-scrollbar-thumb { background: var(--scrollbar); }
+
+/* Dark mode toggle button */
+#dark-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#dark-toggle:hover { background: #f1f5f9; }
+html.dark #dark-toggle { background: #334155; border-color: #475569; color: #94a3b8; }
+html.dark #dark-toggle:hover { background: #475569; }

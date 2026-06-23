@@ -5,34 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Documentación - Pensum USAC</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/themes/vue.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-dark-mode@latest/dist/style.min.css">
   <style>
     :root { --theme-color: #2563eb; }
-    .sidebar { border-right: 1px solid #e2e8f0; }
-    .app-name-link { font-weight: 700; }
+
+    /* Dark mode overrides */
+    html.dark body { background: #0f172a; color: #e2e8f0; }
+    html.dark .sidebar { background: #1e293b; border-right-color: #334155; }
+    html.dark .sidebar li a { color: #94a3b8; }
+    html.dark .sidebar li a:hover { color: #e2e8f0; }
+    html.dark .content { background: #0f172a; }
+    html.dark .markdown-section h1,
+    html.dark .markdown-section h2,
+    html.dark .markdown-section h3 { color: #f1f5f9; }
+    html.dark .markdown-section p,
+    html.dark .markdown-section li { color: #cbd5e1; }
+    html.dark .markdown-section table tr { border-color: #334155; }
+    html.dark .markdown-section table thead tr { background: #1e293b; }
+    html.dark .markdown-section table tbody tr:nth-child(2n) { background: #1e293b; }
+    html.dark .markdown-section code { background: #1e293b; color: #7dd3fc; }
+    html.dark .markdown-section pre { background: #1e293b; }
+    html.dark .markdown-section blockquote { border-left-color: #3b82f6; background: #1e293b; color: #94a3b8; }
+    html.dark nav.app-nav { background: #1e293b; border-bottom-color: #334155; }
+    html.dark .app-name-link { color: #f1f5f9 !important; }
+
+    /* Toggle button */
+    #theme-toggle {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Source Sans Pro', sans-serif;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    #theme-toggle:hover { background: #f1f5f9; }
+    html.dark #theme-toggle { background: #1e293b; border-color: #334155; color: #94a3b8; }
+    html.dark #theme-toggle:hover { background: #334155; }
   </style>
 </head>
 <body>
   <div id="app">Cargando documentación...</div>
+
   <script>
+    // Apply saved theme before render to avoid flash
+    (function() {
+      const saved = localStorage.getItem('docsTheme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('docsTheme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // Set correct label on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+    });
+
     window.$docsify = {
-      name: 'Pensum-USAC',
-      repo: 'dpaniagua5/Pensum-USAC',
+      name: 'Pensum USAC',
+      repo: 'dpaniagua5/Pensum-USAC/src/docs',
       loadSidebar: true,
       subMaxLevel: 2,
       auto2top: true,
       search: {
         placeholder: 'Buscar...',
         noData: 'Sin resultados',
-      },
-      darkMode: {
-          light: { toggle: { title: 'Modo claro' } },
-          dark:  { toggle: { title: 'Modo oscuro' } }
       }
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-dark-mode@latest/dist/index.min.js"></script>
+  
+  <button id="theme-toggle" onclick="toggleTheme()">
+    <span id="theme-icon">🌙</span>
+  </button>
 </body>
 </html>

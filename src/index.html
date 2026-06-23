@@ -41,6 +41,7 @@
     <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('planner')">Planificador</button>
     <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('scanner')">Escanear Notas</button>
     <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick="switchTab('schedule')">Horario</button>
+    <button class="tab-btn px-4 py-1.5 rounded-md text-sm font-semibold" onclick= "irADocumentacion()">Guía</button>
 </div>
 
             <div class="flex items-center gap-4 ml-auto">
@@ -57,6 +58,10 @@
                         Importar<input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
                     </label>
                     <button onclick="resetPensum()" class="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors">Resetear</button>
+                    <!-- <button id="dark-toggle" onclick="toggleDark()">
+                        <span id="dark-icon">🌙</span>
+                        <span id="dark-label">Oscuro</span>
+                    </button> -->
                 </div>
             </div>
         </div>
@@ -535,7 +540,29 @@
         { id: "0968", name: "Inteligencia Artificial 2", credits: 5, semester: 10, prereq: ["0972"], obligatory: false },        
         { id: "0974", name: "Redes de Nueva Generación", credits: 3, semester: 10, prereq: ["0975"], obligatory: false },        
         { id: "7999", name: "Seminario de Investigación EPS Sistemas", credits: 3, semester: 10, prereq: ["0785", "0786", "0798"], obligatory: false }      
-    ]
+    ],
+    "2025":[
+        { id: "0005", name: "Técnicas de Estudio e Investigación", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0017", name: "Social Humanística 1", credits: 3, semester: 1, prereq: [], obligatory: true },
+        { id: "0101", name: "Matemática Básica 1", credits: 9, semester: 1, prereq: [], obligatory: true },
+        { id: "0006", name: "Idioma Técnico 1", credits: 3, semester: 1, prereq: [], obligatory: false },
+        { id: "0039", name: "Deportes 1", credits: 2, semester: 1, prereq: [], obligatory: false },
+        { id: "0019", name: "Social Humanística 2", credits: 3, semester: 2, prereq: ["0017"], obligatory: true },
+        { id: "0103", name: "Matemática Básica 2", credits: 9, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0147", name: "Física Básica 1", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0768", name: "Introducción a los Algoritmos y Flujo de Datos", credits: 4, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0960", name: "Matemática para Computación 1", credits: 5, semester: 2, prereq: ["0101"], obligatory: true },
+        { id: "0008", name: "Idioma Técnico 2", credits: 3, semester: 2, prereq: ["0006"], obligatory: false },
+        { id: "0040", name: "Deportes 2", credits: 2, semester: 2, prereq: ["0039"], obligatory: false },
+        { id: "0089", name: "Comunicación Asertiva", credits: 2, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0107", name: "Matemática Intermedia 1", credits: 9, semester: 3, prereq: ["0103"], obligatory: true },
+        { id: "0150", name: "Física 1", credits: 5, semester: 3, prereq: ["0147"], obligatory: true },
+        { id: "0770", name: "Introducción a la Programación y Computación 1", credits: 6, semester: 3, prereq: ["0768","0103","0147","0960"], obligatory: true },
+        { id: "0795", name: "Lógica de Sistemas", credits: 3, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0962", name: "Matemática para Computación 2", credits: 5, semester: 3, prereq: ["0103","0147","0960"], obligatory: true },
+        { id: "0001", name: "Ética Profesional", credits: 2, semester: 3, prereq: ["0019"], obligatory: false },
+        { id: "0009", name: "Idioma Técnico 3", credits: 3, semester: 3, prereq: ["0008"], obligatory: false },
+    ]   
 
 };
 
@@ -750,6 +777,10 @@ function openTreeModal(courseId) {
         if (tab === 'schedule') loadScheduleData();
     }
 
+
+    function irADocumentacion() {
+        window.location.href = "./docs/docs.html";
+    }
     // ─────────────────────────────────────────────
     //  PENSUM RENDER
     // ─────────────────────────────────────────────
@@ -2027,6 +2058,28 @@ function downloadSchedulePDF() {
             </div>`;
     }
 
+    // Dark mode
+(function() {
+    const saved = localStorage.getItem('appTheme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+    }
+})();
+
+    // function toggleDark() {
+    //     const isDark = document.documentElement.classList.toggle('dark');
+    //     localStorage.setItem('appTheme', isDark ? 'dark' : 'light');
+    //     document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
+    //     document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
+    // }
+
+    // window.addEventListener('DOMContentLoaded', () => {
+    //     const isDark = document.documentElement.classList.contains('dark');
+    //     document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
+    //     document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
+    // });
+
     // ─────────────────────────────────────────────
     //  INIT
     // ─────────────────────────────────────────────
@@ -2036,6 +2089,8 @@ function downloadSchedulePDF() {
     });
     loadState();
     renderPensum();
+
+
     </script>
 </body>
 </html>

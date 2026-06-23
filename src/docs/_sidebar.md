@@ -7,3 +7,5 @@
   - [Planificador](planificador.md)
   - [Escanear Notas](scanner.md)
   - [Horario](horario.md)
+
+- [**Atras**](https://dpaniagua5.github.io/Pensum-USAC/src/index.html)
