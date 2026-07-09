@@ -58,10 +58,10 @@
                         Importar<input type="file" accept=".json" class="hidden" onchange="importJSON(event)">
                     </label>
                     <button onclick="resetPensum()" class="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors">Resetear</button>
-                    <!-- <button id="dark-toggle" onclick="toggleDark()">
+                    <button id="dark-toggle" onclick="toggleDark()">
                         <span id="dark-icon">🌙</span>
                         <span id="dark-label">Oscuro</span>
-                    </button> -->
+                    </button>
                 </div>
             </div>
         </div>
@@ -2067,18 +2067,18 @@ function downloadSchedulePDF() {
     }
 })();
 
-    // function toggleDark() {
-    //     const isDark = document.documentElement.classList.toggle('dark');
-    //     localStorage.setItem('appTheme', isDark ? 'dark' : 'light');
-    //     document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
-    //     document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
-    // }
+    function toggleDark() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('appTheme', isDark ? 'dark' : 'light');
+        document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
+        document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
+    }
 
-    // window.addEventListener('DOMContentLoaded', () => {
-    //     const isDark = document.documentElement.classList.contains('dark');
-    //     document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
-    //     document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
-    // });
+    window.addEventListener('DOMContentLoaded', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
+        document.getElementById('dark-label').textContent = isDark ? 'Claro' : 'Oscuro';
+    });
 
     // ─────────────────────────────────────────────
     //  INIT
