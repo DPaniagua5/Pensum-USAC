@@ -1682,7 +1682,7 @@ const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sába
 const DAY_KEYS = [1, 2, 3, 4, 5, 6];
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_pM38_nDt_QB40i6UdIsz0RQ-Hc3D9LHgIiPrDfEtE1Z8FNpkQYd75b6TiFSZ0ojU/exec';
-let activePeriodo = 'vacaciones1';
+let activePeriodo = 'semestre2';
 
 async function changePeriodo(key) {
     activePeriodo = key;
@@ -1736,16 +1736,24 @@ async function loadScheduleData() {
                     name: r.Nombre,
                     section: r.Seccion,
                     building: r.Edificio,
-                    room: r.Salon,
+                    // room: r.Salon,
+                    room: '',
                     teacher: r.Catedratico,
                     aux: r.Auxiliar,
                     slots: []
                 };
             }
+            console.log(r.Dias);
             grouped[key].slots.push({
                 start: r.Inicio,
                 end: r.Final,
-                days: r.Dias.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined),
+                // days: r.Dias.trim().split(/\s+/).filter(d => DAY_MAP[d] !== undefined),
+                days: String(r.Dias || '')
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita tildes
+                    .toUpperCase()
+                    .split(/[,\s]+/)
+                    .map(d => d.trim())
+                    .filter(d => DAY_MAP[d] !== undefined),
                 teacher: r.Catedratico,
                 aux: r.Auxiliar
             });
